@@ -1,0 +1,74 @@
+{
+  "expectations": [
+    {
+      "text": "system.md written at docs/architecture/system.md",
+      "passed": true,
+      "evidence": "18777 chars"
+    },
+    {
+      "text": "ADR registry present (adr/README.md index + >=1 ADR)",
+      "passed": true,
+      "evidence": "index=yes; adrs=['ADR-001.md', 'ADR-002.md', 'ADR-003.md', 'ADR-004.md', 'ADR-005.md', 'ADR-006.md', 'ADR-007.md', 'ADR-008.md', 'ADR-009.md', 'ADR-010.md', 'ADR-011.md', 'ADR-012.md']"
+    },
+    {
+      "text": "amendment-log.json is valid JSON with an 'amendments' array",
+      "passed": true,
+      "evidence": "valid"
+    },
+    {
+      "text": "Reconciler isolation: a context attestation is recorded (fresh-spawner proxy; transcript check is manual)",
+      "passed": true,
+      "evidence": "attestation marker found"
+    },
+    {
+      "text": "A feature spec references the sprint's REQs and carries a Verification Contract",
+      "passed": true,
+      "evidence": "specs=['grounded-synthesis.md', 'research-fanout.md']; sprint-REQ refs=['REQ-001', 'REQ-002', 'REQ-003']; VC=True"
+    },
+    {
+      "text": "Spine integrity: docs/spec/capabilities/** content-identical to the fixture (EOL-normalized)",
+      "passed": true,
+      "evidence": "fixture files=1; changed=none; extra=none"
+    },
+    {
+      "text": "DA-T01 pairing: every declared Data: value appears in the realization (realized, or explicitly declined \u2014 silent omission fails either way)",
+      "passed": true,
+      "evidence": "declared=['retrieval', 'grounded-writes', 'memory']; unaddressed=none"
+    },
+    {
+      "text": "DA-T02 pairing: retrieval declared => an eval-suite VC row whose golden-set dataset ref resolves on disk",
+      "passed": true,
+      "evidence": "eval-suite mentioned=True; dataset refs=['docs/spec/evals/research/synthesis.jsonl']; resolving=['docs/spec/evals/research/synthesis.jsonl']"
+    },
+    {
+      "text": "DA-T03 pairing: grounded-writes declared => a named write-path admission rule (>=2 of schema/referential/business-rule + admit/commit in one block)",
+      "passed": false,
+      "evidence": "no admission-rule block found"
+    },
+    {
+      "text": "DA-T04: a datastore ADR walks the \u00a71 rubric (>=2 alternatives \u00b7 driver REQ + dimension map \u00b7 symptom Review-Trigger \u00b7 exit-cost \u00b7 durable-vs-vendor split)",
+      "passed": true,
+      "evidence": "ADR-004.md: {'alts>=2': True, 'driver-REQ': True, 'dimension-map': True, 'review-trigger(symptom)': True, 'exit-cost': True, 'durable-vs-vendor': True}"
+    },
+    {
+      "text": "DA-T05: retrieval content clauses (stage declared \u00b7 chunking params or no-chunking rationale \u00b7 embedding dims + reindex trigger \u00b7 k-consistency \u00b7 why-not-simpler on Stage>=3)",
+      "passed": true,
+      "evidence": "stages=[1, 2, 3, 5]; chunking=True; dims=True; reindex=True; k=True; stage [3] committed; why-not-simpler=True"
+    },
+    {
+      "text": "DA-T06: grounding content clauses (named ground-truth source \u00b7 numeric threshold + action \u00b7 fallback per failure mode \u00b7 driver-layer read-only when LLM-issued queries exist)",
+      "passed": true,
+      "evidence": "ground-truth=True; threshold+action=True; fallback=True; LLM-issued queries present; driver-layer read-only=True"
+    },
+    {
+      "text": "DA-T07: memory content clauses (Gate-0 trigger cited \u00b7 per-kind substrate \u00b7 lifecycle floor \u00b7 sharing+authz named together \u00b7 deletion=>derived-reach when promised)",
+      "passed": true,
+      "evidence": "ADR-007.md: gate0=True; kinds=True; substrate=True; lifecycle=True; sharing+authz=True; deletion promised in the spine; derived-reach pairing=True"
+    },
+    {
+      "text": "Verify-live ADR citation (S18): every ADR whose Decision names a verify-live tech cites a resolving docs/verification/<tech>.md (the confabulation guardrail's tech-mandate arm)",
+      "passed": false,
+      "evidence": "cited=['ADR-005.md\u2192pgvector,voyage-4']; uncited=['ADR-004.md\u2192pgvector']"
+    }
+  ]
+}

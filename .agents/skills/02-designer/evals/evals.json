@@ -1,0 +1,65 @@
+{
+  "skill_name": "02-designer",
+  "note": "Input is a SPINE slice (a spine + a sprint-01.md), like 01. Each case's fixture is a full spine tree under evals/fixtures/<case>/docs/. At eval time the fixture's docs/ is seeded into the arm's outputs/ (the project root); the skill ADDS docs/design/ and APPENDS docs/spec/amendment-log.json without touching docs/spec/capabilities/. Grade with check_design.py (deterministic, structural + amendment-aware — no LLM judge). Design *beauty* is not graded; the lift is the structured contract the next skills consume PLUS the dual-pass Reconcile. The one deterministic discriminator for a *design* contradiction is the WCAG contrast computation the grader runs over the declared token values.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "clean-intent",
+      "prompt": "The Aurora spec spine is already in docs/spec/ and the sprint-1 slice in docs/planning/sprints/sprint-01.md. Run the designer for sprint 1: realize the UX — a tiered design system, per-screen specs, and the DM-ID manifest — all referencing the sprint's REQs, and run the Reconcile pass against docs/spec/design-intent.md. The design-intent is fully stated and its brand color passes WCAG AA, so expect few or no amendments.",
+      "expected_output": "Under docs/design/: a design-system.md with tiered tokens (a primitive layer + the semantic role vocabulary) referencing the sprint's REQ-IDs; >=1 <screen>.md referencing REQ-001/002/003; an approved/sprint-01/manifest.md carrying DM-IDs; and an owner-tagged DDR section. Because the intent is consistent and AA-passing, Reconcile yields ~zero amendments (the false-positive check). docs/spec/capabilities/ is untouched.",
+      "files": ["evals/fixtures/aurora-clean/docs/**"],
+      "assertions": [
+        "design-system.md written at docs/design/design-system.md",
+        "Tiered tokens: a primitive layer AND a semantic role layer (the governed vocabulary)",
+        "design-system references the spine by REQ-ID (traceability, not copied prose)",
+        "At least one docs/design/<screen>.md references this sprint's REQs (REQ-001/002/003)",
+        "DM-ID manifest present under docs/design/approved/sprint-01/ with DM-IDs",
+        "DDR (Design Decision Records) section present in design-system.md",
+        "amendment-log.json is valid JSON with an 'amendments' array",
+        "Validity: the declared brand #1A56DB passes WCAG AA as text on white (6.18:1)",
+        "False-positive check: a clean, AA-passing intent yields no invented amendments (<=1)"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "contrast-conflict",
+      "prompt": "The Aurora spec spine is already in docs/spec/ and the sprint-1 slice in docs/planning/sprints/sprint-01.md. Run the designer for sprint 1: realize the UX — a tiered design system, per-screen specs, and the DM-ID manifest — all referencing the sprint's REQs, and run the Reconcile pass against docs/spec/design-intent.md. Pay attention to the declared brand color against the project's accessibility floor.",
+      "expected_output": "The same structured design contract as case 1, PLUS: the dual-pass detector computes that the declared, stated brand color (#7FB3FF) fails WCAG 2.2 AA as button/link text on white (~2.14:1) against the stated 'WCAG 2.2 AA' floor, so Reconcile emits a Tier-2, gated/approved amendment-log.json row citing the brand-vs-a11y contradiction (NOT auto-applied, NOT silently used as text) and proposes a contrast-safe brand for text use.",
+      "files": ["evals/fixtures/aurora-contrast/docs/**"],
+      "assertions": [
+        "design-system.md written + tiered tokens + REQ refs + >=1 screen + DM-ID manifest + DDR section (the structural contract)",
+        "amendment-log.json is valid JSON with an 'amendments' array",
+        "Validity: the grader recomputes the declared brand #7FB3FF on white = ~2.14:1, below the 4.5:1 AA floor (the planted contradiction is real)",
+        "Reconcile caught it: a Tier-2 amendment row cites the brand-vs-a11y contrast contradiction, gated/approved (not auto-applied)",
+        "Did not SILENTLY use the failing brand color as text/link — any use is surfaced via the Tier-2 gate"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "derived-intent",
+      "prompt": "The TeamPulse spec spine is already in docs/spec/ (with discovery notes in docs/discovery/ and the plan in docs/planning/). Run the designer for sprint 1 (docs/planning/sprints/sprint-01.md): realize the UX — a tiered design system, per-screen specs, and the DM-ID manifest — referencing the sprint's REQs, and run the Reconcile pass against docs/spec/design-intent.md, whose brand direction is derived / [NEEDS CLARIFICATION].",
+      "expected_output": "The structured design contract (tiered tokens referencing the sprint's REQs, >=1 screen, a DM-ID manifest, a DDR section), PLUS the flesh-out component of Reconcile: because design-intent.md's brand adjectives are derived / [NEEDS CLARIFICATION] and it specifies no tokens, the skill proposes a concrete brand direction via a Tier-2 gated amendment-log.json row resolving the marker, and the design-system gives the brand concrete token values it previously lacked.",
+      "files": ["evals/fixtures/teampulse/docs/**"],
+      "assertions": [
+        "design-system.md written + tiered tokens + REQ refs + >=1 screen referencing the sprint's REQs + DM-ID manifest + DDR section",
+        "amendment-log.json is valid JSON with an 'amendments' array",
+        "Flesh-out: a Tier-2 amendment row resolves the derived/[NEEDS CLARIFICATION] brand intent",
+        "Concrete tokens: design-system gives the brand a concrete color the thin design-intent lacked"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "agent",
+      "prompt": "The Relay spec spine is already in docs/spec/ — it declares Profile: agent-system and carries an agent-contract.md. Run the designer for sprint 1 (docs/planning/sprints/sprint-01.md): realize the UX for the in-scope REQs and generate the DM-ID manifest, referencing the sprint's REQs, and run the Reconcile pass against docs/spec/design-intent.md.",
+      "expected_output": "Because Profile is agent-system, Phase B designs the AGENT EXPERIENCE, not screens: a tool-surface design that names and traces the agent-contract's tools (inbox.read, kb.search, reply.send, refund.issue, slack.escalate), conversation/turn design, the persona/voice realized from design-intent, error-and-refusal UX, and the HITL touchpoint for refund approval. The DM-NNN manifest is kept but its rows point at tools/turns/refusals. amendment-log.json stays valid (Reconcile targets voice + the agent-contract HITL rows). A baseline designs generic screens/UX with no tool-surface tracing and no DM manifest.",
+      "files": ["evals/fixtures/relay-agent/docs/**"],
+      "assertions": [
+        "A docs/design/ agent-experience artifact is written (tool surface, not screens)",
+        "DM-ID manifest present with rows pointing at tools/turns/refusals",
+        "Tool surface covered: the design references >= half of the agent-contract's tools",
+        "Persona/voice realized; error-and-refusal UX designed; HITL touchpoint (refund approval) designed",
+        "amendment-log.json is valid JSON with an 'amendments' array"
+      ]
+    }
+  ]
+}

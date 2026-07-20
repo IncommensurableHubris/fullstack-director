@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "probe-report",
+  "type": "object",
+  "required": ["case", "trial", "executor", "probes"],
+  "additionalProperties": false,
+  "properties": {
+    "case": {"type": "string"},
+    "trial": {"type": "string"},
+    "executor": {"type": "string", "enum": ["sonnet", "opus", "baseline-sonnet"]},
+    "probes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "fired"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string"},
+          "fired": {"type": "boolean"},
+          "evidence": {"type": "string"}
+        }
+      }
+    }
+  }
+}

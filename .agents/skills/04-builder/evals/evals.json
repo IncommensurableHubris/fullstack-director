@@ -1,0 +1,146 @@
+{
+  "skill_name": "04-builder",
+  "note": "Input is a seeded UPSTREAM REALIZATION (03's feature specs + Verification Contracts, system.md, ADRs, the 01 sprint slice[, a 02 manifest]) — the build funnel, not a raw spine. Each case's fixture is `base/docs/**` (shared spine + zero-dep-Node architecture) overlaid with `cases/<case>/docs/**` (the case's sprint + feature-spec VCs [+ manifest]). At eval time the overlaid docs/ is seeded into the arm's outputs/ (the project root), the harness `git init`s it and makes the seed commit, and the arm ADDS src/** + tests and writes _artifacts/exports/build-handoff-sprint-01.md — capturing baseline_commit BEFORE editing so the frozen diff anchor and the diff-reconciliation are real. The stack is pinned (system.md §1 + ADR-001) to plain Node.js + built-in node:test: zero deps, no compile, offline, deterministic. Grade with check_build.py (deterministic — structural + diff-reconcile + `node --test` smoke-run [exit 0 AND positive test count] + a hand-rolled single-mutant anti-tautology check + honesty; no LLM judge). Build *quality* is NOT graded (a strong baseline builds working code); the lift is the cold-reviewable, evidence-bearing, honest handoff + non-tautological tests that let the context-isolated reviewer (05) verify without inheriting build bias.",
+  "run_notes": "with_skill arms load .agents/skills/04-builder/SKILL.md and run `04-builder sprint 1` autonomously to completion (04 has NO user gate and NO subagents — nothing to relax; it is a single sequential pass). The arm must: (a) capture baseline_commit via `git rev-parse HEAD` BEFORE any edit; (b) implement src/** + node:test tests from the feature specs' Verification Contracts, TDD RED-first for unit rows; (c) honestly scope any VC it cannot execute in this headless env (a `browser` row -> INFERRED with a cited reason, never dropped/fake-passed); (d) commit its work (`git add -A && git commit`) and record final_commit; (e) write the evidence-bearing handoff at _artifacts/exports/build-handoff-sprint-01.md (frontmatter + File List + VC carry-forward with evidence states + REQ coverage map [+ DM->file:line] + attestations). baseline arms perform the same prompt with NO skill (ignore framework files) — they typically build passing code but produce no baseline_commit/File-List/evidence-state/REQ-map handoff, may write hollow tests, and drop or fake-pass the unbuildable VC. Harness per arm: `mkdir -p <arm>/outputs && cp -r fixtures/base/docs <arm>/outputs/docs && cp -r fixtures/cases/<case>/docs <arm>/outputs/ && (cd <arm>/outputs && git init -q && git add -A && git commit -qm seed)`. Grade: `python check_build.py --outputs <arm>/outputs --case <case>`; copy grading.json to <arm>/grading.json for the viewer. FIX-PASS CASE (04's build<->review loop-half): the overlay ALSO seeds src/** (a DEFECTIVE build with a REQ-008 grouping bug), test/** (the build's shallow happy-path tests + the reviewer's committed RED test at test/review/req-008-grouping.test.js), and docs/quality/qa-report-sprint-01.md (a FIX REQUIRED verdict) — so the seed commit IS the reviewed defective build; harness: `mkdir -p <arm>/outputs && cp -r fixtures/base/docs <arm>/outputs/docs && cp -r fixtures/cases/fix-pass/. <arm>/outputs/ && (cd <arm>/outputs && git init -q && git add -A && git commit -qm 'defective build + review')`. The with_skill arm runs `04-builder sprint 1`, detects the FIX REQUIRED report, drives the reviewer RED test to green by fixing src/** (NEVER editing the reviewer test), and re-emits the handoff (VC-02 EXECUTED + a deviations note + fresh final_commit/spec_slice_hash). The baseline arm (no skill) typically edits the impl but does not treat the reviewer test as an immutable oracle, does not re-emit the structured handoff, or edits the reviewer test to fit — failing F2/F3/F4/F5.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "clean-build",
+      "prompt": "The upstream realization for TeamPulse's sprint 1 is already seeded under docs/ — the spine (docs/spec/), the sprint slice (docs/planning/sprints/sprint-01.md), and the architecture (docs/architecture/system.md, adr/, and the feature spec docs/architecture/specs/digest-assembly.md with its Verification Contract). The stack is pinned to plain Node.js + the built-in node:test runner, zero dependencies (ADR-001). Run the builder: `04-builder sprint 1`. Capture baseline_commit before editing, implement the digest core under src/** with node:test tests satisfying every Verification-Contract row, then write the evidence-bearing build-handoff at _artifacts/exports/build-handoff-sprint-01.md. Commit your work and record final_commit. There is no UI and no user gate — run to completion.",
+      "expected_output": "Under src/**: the pure digest core (recordStandup enforcing one standup per member/day; assembleDigest grouping a day's standups by member) + node:test tests that were RED-first and that a mutation would break. _artifacts/exports/build-handoff-sprint-01.md carries: frontmatter (baseline_commit resolving to the seed commit, final_commit, spec_slice_path, review_mode: full); a File List equal to the git diff; every VC row (VC-01, VC-02) carried forward in state EXECUTED with a reproduction command + RED-note; a REQ coverage map (REQ-001, REQ-008 -> FULL at a real test:line); and attestations (spine untouched, zero dependencies added). `node --test` exits 0 with a positive test count on two runs; a single-point mutation of the source makes the suite fail. docs/spec, docs/architecture untouched.",
+      "files": ["evals/fixtures/base/docs/**", "evals/fixtures/cases/clean-build/docs/**"],
+      "assertions": [
+        "Build-handoff exists at _artifacts/exports/build-handoff-sprint-NN.md (the reviewer's sole seed)",
+        "Handoff frontmatter declares baseline_commit, final_commit, and spec_slice_path (the frozen diff anchor)",
+        "Handoff frontmatter declares a well-formed spec_slice_hash (sha256:<hex> — the binding 05 recomputes)",
+        "baseline_commit resolves to a real commit in the repo (a reconstructable diff anchor)",
+        "Handoff declares a File List of source paths (the reviewer's map)",
+        "Diff<->File-List reconciliation: declared source files == git-changed source files (no undeclared writes / hallucinated file claims)",
+        "Spine + realizations untouched: the build changed no docs/spec, docs/architecture, or docs/design file",
+        "Every Verification-Contract row is carried forward with an evidence state (EXECUTED/OBSERVED/INFERRED)",
+        "Every in-scope REQ has a coverage row (FULL/PARTIAL/NONE) in the handoff",
+        "REQ-coverage rows point at test files that exist (traceable, not invented)",
+        "Smoke-run: `node --test` exits 0 with a positive executed-test count (the EXECUTED gate)",
+        "Determinism: a second `node --test` run also exits 0 with tests (offline, no time/network/random)",
+        "Test files contain real assertions (no assertion-free suite)",
+        "Anti-tautology: a single-point source mutation makes the suite FAIL (the tests catch a broken impl)",
+        "Honesty: no row claimed EXECUTED while the suite is red; every non-EXECUTED row cites a reason",
+        "No surviving template placeholders in the handoff (a finished, fillable seed)",
+        "clean-build: every VC row is EXECUTED (a fully-buildable slice, all behaviors actually executed)"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "unbuildable-contract",
+      "prompt": "The upstream realization for TeamPulse's sprint 1 is seeded under docs/. The stack is pinned to plain Node.js + node:test, zero dependencies, and this is a HEADLESS slice — system.md §3/§11 state there is no web/UI container yet. The feature spec docs/architecture/specs/digest-assembly.md carries four Verification-Contract rows: VC-01/VC-02/VC-03 are `unit`; VC-04 is a `browser` row that checks the digest's VISUAL pinning in a rendered page. Run the builder: `04-builder sprint 1`. Capture baseline_commit before editing, implement the pure core (recordStandup, assembleDigest incl. the needs-help section) under src/** with node:test tests, and write the evidence-bearing build-handoff at _artifacts/exports/build-handoff-sprint-01.md. Commit your work and record final_commit. Run to completion; there is no user gate.",
+      "expected_output": "Same evidence-bearing handoff as case 1, PLUS honest scoping of the unrunnable row: VC-01/VC-02/VC-03 are EXECUTED (unit tests over the pure core), and VC-04 (browser) is carried forward in state INFERRED with a cited reason (no web/UI container / no browser runtime this headless slice — system.md §3/§11) and its Unknown — NOT dropped from the handoff and NOT fake-marked EXECUTED. `node --test` green on two runs; a mutation breaks the suite. The REQ coverage map still covers REQ-001/REQ-008/REQ-009. docs/spec, docs/architecture untouched.",
+      "files": ["evals/fixtures/base/docs/**", "evals/fixtures/cases/unbuildable-contract/docs/**"],
+      "assertions": [
+        "Build-handoff exists at _artifacts/exports/build-handoff-sprint-NN.md (the reviewer's sole seed)",
+        "Handoff frontmatter declares baseline_commit, final_commit, and spec_slice_path (the frozen diff anchor)",
+        "Handoff frontmatter declares a well-formed spec_slice_hash (sha256:<hex> — the binding 05 recomputes)",
+        "baseline_commit resolves to a real commit in the repo (a reconstructable diff anchor)",
+        "Handoff declares a File List of source paths (the reviewer's map)",
+        "Diff<->File-List reconciliation: declared source files == git-changed source files (no undeclared writes / hallucinated file claims)",
+        "Spine + realizations untouched: the build changed no docs/spec, docs/architecture, or docs/design file",
+        "Every Verification-Contract row is carried forward with an evidence state (EXECUTED/OBSERVED/INFERRED)",
+        "Every in-scope REQ has a coverage row (FULL/PARTIAL/NONE) in the handoff",
+        "REQ-coverage rows point at test files that exist (traceable, not invented)",
+        "Smoke-run: `node --test` exits 0 with a positive executed-test count (the EXECUTED gate)",
+        "Determinism: a second `node --test` run also exits 0 with tests (offline, no time/network/random)",
+        "Test files contain real assertions (no assertion-free suite)",
+        "Anti-tautology: a single-point source mutation makes the suite FAIL (the tests catch a broken impl)",
+        "Honesty: no row claimed EXECUTED while the suite is red; every non-EXECUTED row cites a reason",
+        "No surviving template placeholders in the handoff (a finished, fillable seed)",
+        "unbuildable-contract: the browser VC is honestly INFERRED with a cited reason — not dropped, not fake-passed (the honesty discriminator)",
+        "unbuildable-contract: the buildable (unit) VCs are still EXECUTED (only the unrunnable row is INFERRED)"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "coverage-traceability",
+      "prompt": "The upstream realization for TeamPulse's sprint 1 is seeded under docs/, including a 02 design contract at docs/design/approved/sprint-01/manifest.md (DM-001 dated header, DM-002 per-member sections, DM-003 needs-help section) that the text renderer must realize. The stack is plain Node.js + node:test, zero deps. The feature spec docs/architecture/specs/digest-assembly.md carries five `unit` Verification-Contract rows spanning REQ-001/REQ-008/REQ-009 over recordStandup, assembleDigest, and a pure text renderDigest. Run the builder: `04-builder sprint 1`. Capture baseline_commit before editing, implement the core + renderer under src/** with node:test tests, and write the evidence-bearing build-handoff at _artifacts/exports/build-handoff-sprint-01.md with a COMPLETE REQ->test coverage map and a DM-ID->file:line map. Commit your work and record final_commit. Run to completion.",
+      "expected_output": "Under src/**: recordStandup, assembleDigest (grouped + needs-help), and renderDigest (header -> needs-help -> per-member sections) + node:test tests. The handoff carries the full evidence contract PLUS a complete traceability map: every in-scope REQ (REQ-001, REQ-008, REQ-009) mapped FULL/PARTIAL/NONE to a real test:line, and every manifest DM-ID (DM-001, DM-002, DM-003) mapped to an existing implementation file:line. All five VCs EXECUTED; `node --test` green on two runs; a mutation breaks the suite. docs/spec, docs/architecture, docs/design untouched.",
+      "files": ["evals/fixtures/base/docs/**", "evals/fixtures/cases/coverage-traceability/docs/**"],
+      "assertions": [
+        "Build-handoff exists at _artifacts/exports/build-handoff-sprint-NN.md (the reviewer's sole seed)",
+        "Handoff frontmatter declares baseline_commit, final_commit, and spec_slice_path (the frozen diff anchor)",
+        "Handoff frontmatter declares a well-formed spec_slice_hash (sha256:<hex> — the binding 05 recomputes)",
+        "baseline_commit resolves to a real commit in the repo (a reconstructable diff anchor)",
+        "Handoff declares a File List of source paths (the reviewer's map)",
+        "Diff<->File-List reconciliation: declared source files == git-changed source files (no undeclared writes / hallucinated file claims)",
+        "Spine + realizations untouched: the build changed no docs/spec, docs/architecture, or docs/design file",
+        "Every Verification-Contract row is carried forward with an evidence state (EXECUTED/OBSERVED/INFERRED)",
+        "Every in-scope REQ has a coverage row (FULL/PARTIAL/NONE) in the handoff",
+        "REQ-coverage rows point at test files that exist (traceable, not invented)",
+        "Smoke-run: `node --test` exits 0 with a positive executed-test count (the EXECUTED gate)",
+        "Determinism: a second `node --test` run also exits 0 with tests (offline, no time/network/random)",
+        "Test files contain real assertions (no assertion-free suite)",
+        "Anti-tautology: a single-point source mutation makes the suite FAIL (the tests catch a broken impl)",
+        "Honesty: no row claimed EXECUTED while the suite is red; every non-EXECUTED row cites a reason",
+        "No surviving template placeholders in the handoff (a finished, fillable seed)",
+        "coverage-traceability: every in-scope REQ is mapped FULL/PARTIAL/NONE (a complete REQ coverage map)",
+        "coverage-traceability: every manifest DM-ID maps to an existing file:line in the handoff (forward DM coverage)"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "fix-pass",
+      "prompt": "This is the build<->review loop's FIX pass. TeamPulse sprint 1 was built, reviewed by 05, and came back FIX REQUIRED. Seeded under the repo: the funnel (docs/spec/, docs/planning/sprints/sprint-01.md, docs/architecture/specs/digest-assembly.md), a DEFECTIVE build (src/digest.js — assembleDigest has a REQ-008 grouping bug that drops all but the first member), the build's own happy-path tests (test/digest.test.js, green — they only exercise a single member), the reviewer's committed RED test (test/review/req-008-grouping.test.js, which fails against the defective impl), and the FIX REQUIRED verdict (docs/quality/qa-report-sprint-01.md). The repo is already a git repo whose HEAD is the reviewed defective build. Run `04-builder sprint 1`. Detect the FIX REQUIRED report; read its findings + the reviewer's RED test; capture baseline_commit (current HEAD) before editing; drive the reviewer's RED test to GREEN by fixing src/digest.js with the minimal change — you may NOT edit the reviewer-authored test (test/review/**); commit; and re-emit the build-handoff at _artifacts/exports/build-handoff-sprint-01.md with VC-02 (REQ-008) now EXECUTED, a deviations note of what you addressed, and a fresh final_commit + spec_slice_hash. Run to completion.",
+      "expected_output": "src/digest.js fixed so assembleDigest groups EVERY member (not just the first); `node --test test/review/req-008-grouping.test.js` now exits 0. The reviewer's RED test is byte-for-byte unchanged (same git blob) — 04 fixed the implementation, not the oracle. The re-emitted handoff carries the frozen diff anchor (baseline_commit = the reviewed defective build; a fresh final_commit; spec_slice_hash), a File List including src/digest.js, VC-01/VC-02/VC-03 all EXECUTED (VC-02 previously failing, now green), a REQ coverage map, and a deviations note ('REQ-008 grouping fixed — reviewer RED test now green'). The full `node --test` suite is green on two runs; a single-point mutation of src/digest.js makes it fail. docs/spec, docs/architecture, docs/design, and test/review/** untouched by the fix.",
+      "files": ["evals/fixtures/base/docs/**", "evals/fixtures/cases/fix-pass/**"],
+      "assertions": [
+        "Build-handoff exists at _artifacts/exports/build-handoff-sprint-NN.md (the reviewer's sole seed)",
+        "Handoff frontmatter declares baseline_commit, final_commit, and spec_slice_path (the frozen diff anchor)",
+        "Handoff frontmatter declares a well-formed spec_slice_hash (sha256:<hex> — the binding 05 recomputes)",
+        "baseline_commit resolves to a real commit in the repo (a reconstructable diff anchor)",
+        "Handoff declares a File List of source paths (the reviewer's map)",
+        "Diff<->File-List reconciliation: declared source files == git-changed source files (no undeclared writes / hallucinated file claims)",
+        "Spine + realizations untouched: the build changed no docs/spec, docs/architecture, or docs/design file",
+        "Every Verification-Contract row is carried forward with an evidence state (EXECUTED/OBSERVED/INFERRED)",
+        "Every in-scope REQ has a coverage row (FULL/PARTIAL/NONE) in the handoff",
+        "REQ-coverage rows point at test files that exist (traceable, not invented)",
+        "Smoke-run: `node --test` exits 0 with a positive executed-test count (the EXECUTED gate)",
+        "Determinism: a second `node --test` run also exits 0 with tests (offline, no time/network/random)",
+        "Test files contain real assertions (no assertion-free suite)",
+        "Anti-tautology: a single-point source mutation makes the suite FAIL (the tests catch a broken impl)",
+        "Honesty: no row claimed EXECUTED while the suite is red; every non-EXECUTED row cites a reason",
+        "No surviving template placeholders in the handoff (a finished, fillable seed)",
+        "fix-pass: the reviewer's committed RED test now PASSES (04 fixed the impl to satisfy it)",
+        "fix-pass: the reviewer's RED test is UNCHANGED vs baseline (04 did not edit the oracle — anti-circular)",
+        "fix-pass: the re-emitted handoff marks the fixed VC-02 (REQ-008 grouping) EXECUTED",
+        "fix-pass: the handoff records a deviations note for the fix (what was addressed)",
+        "fix-pass: a fresh final_commit distinct from the reviewed baseline_commit"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "patch-build",
+      "prompt": "This is the WS1 patch funnel. TeamPulse sprint-01 shipped (src/ + test/ green and reviewed); /01-planner has since CERTIFIED patch-001 (docs/planning/patches/patch-001.md, Patches ledger row 'planned'): standups submitted exactly at the lock minute are dropped from the digest — a boundary comparison in src/digest.js's assembleDigest; an at-lock submission should be included (REQ-008). The repo is already a git repo whose HEAD is the shipped sprint-01 state. Run `/04-builder` on the patch. Capture baseline_commit before editing; TDD-for-bugs (reproducing RED test first); stay within the record's certified size budget; advance the Patches ledger row; commit; emit the patch-keyed handoff at _artifacts/exports/build-handoff-patch-001.md. Run to completion.",
+      "expected_output": "src/digest.js fixed (at-lock submissions included) + a reproducing regression test that was observed RED pre-fix. The handoff is patch-keyed: review_mode: patch, patch: patch-001, spec_slice_path/hash bind the patch record; VC carry-forward covers REQ-008's rows + the regression row; REQ-008 coverage FULL; File List == the diff; the diff stays within the certified 3-file/60-LOC budget; the Patches ledger row reads in-progress. Spine + realizations untouched; suite green twice; a mutation kills it.",
+      "files": ["evals/fixtures/base/docs/**", "evals/fixtures/cases/patch-build/**"],
+      "assertions": [
+        "The common evidence contract holds (handoff + anchors + File List reconcile + VC states + coverage + smoke + determinism + assertions + anti-tautology + honesty + no placeholders), with VC carry-forward scoped to the patch's owning REQs",
+        "patch-build: handoff frontmatter declares review_mode: patch",
+        "patch-build: the patch id travels — frontmatter patch: patch-NNN + a patch-keyed handoff filename",
+        "patch-build: spec_slice_path binds the patch record (docs/planning/patches/patch-NNN.md)",
+        "patch-build: the certified size budget held (source files <= files budget; added LOC <= loc budget)",
+        "patch-build: the Patches ledger row advanced to in-progress (04's one ledger write)",
+        "patch-build: the fix ships a regression test (a test file in the diff — TDD-for-bugs)"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "patch-budget-exceeded",
+      "prompt": "This is the WS1 patch funnel with a mis-certified budget. TeamPulse sprint-01 shipped (src/ + test/ green); /01-planner certified patch-001 (docs/planning/patches/patch-001.md, Patches row 'planned') for the at-lock digest boundary bug — but the record's certified budget is 1 file / 8 LOC, and the builder's TDD-for-bugs discipline makes the reproducing regression test non-optional (fix + test = 2 files minimum). The repo is already a git repo at the shipped state. Run `/04-builder` on the patch and run to completion — which here means the HONEST exit, not a delivered build.",
+      "expected_output": "The builder detects the P4 violation (the honest fix cannot fit the certified budget), HALTs rather than silently widening: the Patches ledger row is marked escalated, a HALT record names the size budget (P4), no source file is edited beyond the budget (ideally none), and the spine/realizations are untouched. The work re-enters the normal chain (/01-planner plan-sprint N).",
+      "files": ["evals/fixtures/base/docs/**", "evals/fixtures/cases/patch-budget-exceeded/**"],
+      "assertions": [
+        "patch-budget-exceeded: the Patches ledger row is marked `escalated`",
+        "patch-budget-exceeded: a HALT is recorded naming the size budget (P4)",
+        "patch-budget-exceeded: no silent widening — source changes stay within the certified files budget",
+        "patch-budget-exceeded: spine + realizations untouched on the escalation path"
+      ]
+    }
+  ]
+}

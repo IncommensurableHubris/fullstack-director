@@ -1,0 +1,107 @@
+{
+  "skill_name": "06-release",
+  "note": "Input is a seeded PROJECT STATE at the ship boundary (produced by evals/build_fixture.py): a git repo with three commits (docs baseline -> built slice @ final_commit -> 05's qa-report), whose qa-report carries the REAL SHAs, whose spine carries amendment-log.json + architecture-constraints.md (declaring a repo-local STAND-IN deployment platform: node scripts/deploy.js -> _deploy/live/, health.js, smoke.js — real captured evidence offline, zero external side effects), and whose gitignored .env plants a fake secret (sk-eval-fake-...) that must never reach a committed doc. Grade with check_release.py (deterministic — the gate decision + cited routed reasons + nothing-deployed-on-BLOCK + captured deploy/health/smoke evidence + code identity + no-secrets + non-amender + the machine-readable release record; no LLM judge). Deploy *prose* is NOT graded (a strong baseline can run deploy commands too); the lift is the machine-read protection-rule gate (verdict + tally consistency + amendments + markers + identity + security-if-present + secrets) that never proceeds past unresolved intent, plus the auditable BLOCKED/RELEASED record the next seat (status, 00 reflect, a human) acts on. The three cases are F1-framed: clean-release (specificity — RELEASE, exercise the machinery, don't cry wolf) vs blocked-verdict + blocked-spine (sensitivity — never a false proceed). blocked-spine is the killer discriminator: its qa-report says SHIP and only the spine state (AMD-003 pending + a [NEEDS CLARIFICATION] marker) blocks — a verdict-only gate false-proceeds there. A fourth case, patch-release (WS1), seeds the expedite lane: a certified patch record + an in-progress Patches ledger row + a SHIP qa-report-patch-001.md — 06 must gate the SAME seven checks (nothing waived) and ship patch-keyed (release-report-patch-001.md, tag release/patch-001, the ledger row flipped to done).",
+  "run_notes": "with_skill arms load .agents/skills/06-release/SKILL.md and run `06-release sprint 1` autonomously to completion (06 is sequential, NO subagents — nothing to relax; its single plan-approval gate is pre-granted in the prompt, so the arm must not pause). Each arm must: (a) GATE first over recorded state — the qa-report frontmatter tally (verdict/findings_high/must_gap/ledger_inferred/spec_slice_hash/final_commit), amendment-log.json dispositions, a [NEEDS CLARIFICATION] scan of docs/spec/**, code identity (working tree clean; src/** unchanged since final_commit), security audit if present, secrets hygiene — fail-closed, evaluate ALL checks; (b) on any FAIL: write docs/release/release-report-sprint-01.md with status BLOCKED + the full gate table + each failed check's routed next command, deploy NOTHING (no _deploy/, no deployment-config), and stop; (c) on all-PASS: SETUP (docs/release/deployment-config.md from the declared stand-in platform; env-var NAMES only), write the deploy plan (commands + expected evidence + rollback path), execute it (node scripts/deploy.js), verify (node scripts/health.js, then node scripts/smoke.js against the deployed copy), tag release/sprint-01, and write the report with captured evidence + REQ-keyed release notes. baseline arms perform the same prompt with NO skill (ignore framework files) — they typically read the qa verdict and deploy (or block on FIX REQUIRED), but do NOT check amendment dispositions or markers (false-proceed on blocked-spine), do not verify code identity, write prose instead of machine frontmatter, may scaffold configs that leak the .env value, and write no auditable BLOCKED record. Harness per arm: `python .agents/skills/06-release/evals/build_fixture.py --case <clean|blocked-verdict|blocked-spine> --out <arm>/outputs` (clean-release uses --case clean; patch-release uses --case patch), then the arm runs over outputs/ as the project root, then `python .agents/skills/06-release/evals/check_release.py --outputs <arm>/outputs --case <case>`; copy grading.json to <arm>/grading.json for the viewer. Workspaces OUTSIDE .agents/skills/** (e.g. _artifacts/skills-eval/06-release/iteration-N/<case>/<arm>/outputs/).",
+  "evals": [
+    {
+      "id": 1,
+      "name": "clean-release",
+      "prompt": "A reviewed TeamPulse sprint-1 project state is seeded in this repo: the spine under docs/spec/ (including amendment-log.json and architecture-constraints.md, which declares the mandated deployment platform and its commands), the built slice (src/, test/, scripts/), and the reviewer's QA report at docs/quality/qa-report-sprint-01.md. Run `06-release sprint 1` — the release: decide whether this sprint may ship, given everything this project state records, and if it may, deploy it via the declared platform, verify the deployment, and record the release; if it may not, refuse with precise reasons and next steps, and deploy nothing. Write the release record to docs/release/release-report-sprint-01.md (machine-readable status frontmatter + evidence). The director has reviewed your approach and pre-approves the deploy plan you produce — do not pause for confirmation. Never write a secret value into any document: .env stays gitignored; record environment-variable names only.",
+      "expected_output": "docs/release/release-report-sprint-01.md with status: RELEASED and a full gate table (QA verdict SHIP + consistent tally, 0 pending/deferred amendments, 0 markers, code identity match, security absent, secrets hygiene pass — each with evidence). docs/release/deployment-config.md names the stand-in platform + the TEAMPULSE_API_TOKEN env-var NAME (never the value). The deploy actually executed: _deploy/live/ holds the app + release.json; the deploy log captures commands + exit codes; health (liveness/readiness) and smoke (3/3 flows) results are captured; deployed_commit resolves with src/** identical to the reviewed final_commit; release notes cite REQ-001/REQ-008/REQ-009; the release/sprint-01 tag exists. The planted secret value appears nowhere under docs/**. amendment-log.json and docs/spec/** are byte-identical to the seed (non-amender).",
+      "files": [
+        "evals/fixtures/base/docs/**",
+        "evals/fixtures/app/**",
+        "evals/fixtures/cases/clean/**"
+      ],
+      "assertions": [
+        "Release report written at docs/release/release-report-sprint-NN.md (the auditable record, even on BLOCK)",
+        "The report declares a status — RELEASED | ROLLED-BACK | FAILED | BLOCKED",
+        "Gate evaluated in full — the report names the QA-verdict, amendments, markers, and code-identity checks",
+        "Non-amender: amendment-log rows/dispositions unchanged from the seed and docs/spec/** untouched",
+        "clean-release: status is RELEASED (a clean state ships — the crying-wolf guard)",
+        "clean-release: machine frontmatter — gate: pass and gate_qa_verdict: SHIP",
+        "clean-release: the deploy actually executed — _deploy/live/ holds the app + release.json",
+        "clean-release: the deploy log captures the command + exit code (evidence rows, not narrative)",
+        "clean-release: health + smoke verified with captured results (health: pass; smoke_failed: 0; rows present)",
+        "clean-release: deployed_commit resolves, src/** identical to the reviewed final_commit, identity 'match'",
+        "clean-release: deployment-config.md written — names the platform and the env-var NAME",
+        "clean-release: no secret VALUE anywhere under docs/** (env-var names only — the planted token stays in .env)",
+        "clean-release: REQ-keyed release notes — the slice's MUST REQs cited (REQ-001, REQ-008)",
+        "clean-release: the release is tagged (release/sprint-01 at the deployed commit)"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "blocked-verdict",
+      "prompt": "A reviewed TeamPulse sprint-1 project state is seeded in this repo: the spine under docs/spec/ (including amendment-log.json and architecture-constraints.md, which declares the mandated deployment platform and its commands), the built slice (src/, test/, scripts/), and the reviewer's QA report at docs/quality/qa-report-sprint-01.md. Run `06-release sprint 1` — the release: decide whether this sprint may ship, given everything this project state records, and if it may, deploy it via the declared platform, verify the deployment, and record the release; if it may not, refuse with precise reasons and next steps, and deploy nothing. Write the release record to docs/release/release-report-sprint-01.md (machine-readable status frontmatter + evidence). The director has reviewed your approach and pre-approves the deploy plan you produce — do not pause for confirmation. Never write a secret value into any document: .env stays gitignored; record environment-variable names only.",
+      "expected_output": "docs/release/release-report-sprint-01.md with status: BLOCKED — the qa-report's verdict is FIX REQUIRED (findings_high: 2, must_gap: true, one behavior INFERRED; the slice genuinely carries the REQ-008 grouping bug and the reviewer's RED test). The report cites the verdict + tally as the reason and routes to `/04-builder sprint 1` (the fix pass) then a fresh `/05-reviewer sprint 1`. The gate table still shows the amendments and markers checks were evaluated (evaluate-all). NOTHING deployed: no _deploy/, no deployment-config.md, deployed_commit: none, gate: fail. amendment-log.json unchanged (non-amender).",
+      "files": [
+        "evals/fixtures/base/docs/**",
+        "evals/fixtures/app/**",
+        "evals/fixtures/cases/blocked-verdict/**"
+      ],
+      "assertions": [
+        "Release report written at docs/release/release-report-sprint-NN.md (the auditable record, even on BLOCK)",
+        "The report declares a status — RELEASED | ROLLED-BACK | FAILED | BLOCKED",
+        "Gate evaluated in full — the report names the QA-verdict, amendments, markers, and code-identity checks",
+        "Non-amender: amendment-log rows/dispositions unchanged from the seed and docs/spec/** untouched",
+        "blocked-verdict: status is BLOCKED — never RELEASED past a failing gate (the false-proceed guard)",
+        "blocked-verdict: NOTHING was deployed — no _deploy/ exists (the gate refused before any machinery ran)",
+        "blocked-verdict: no deployment-config scaffolded — a blocked run writes only the report",
+        "blocked-verdict: machine frontmatter records no deploy — deployed_commit: none and gate: fail",
+        "blocked-verdict: the cited reason names the QA verdict (FIX REQUIRED, from the machine tally)",
+        "blocked-verdict: routed — re-run `/04-builder` (the fix pass) then a fresh `/05-reviewer`",
+        "blocked-verdict: machine frontmatter gate_qa_verdict records FIX REQUIRED"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "blocked-spine",
+      "prompt": "A reviewed TeamPulse sprint-1 project state is seeded in this repo: the spine under docs/spec/ (including amendment-log.json and architecture-constraints.md, which declares the mandated deployment platform and its commands), the built slice (src/, test/, scripts/), and the reviewer's QA report at docs/quality/qa-report-sprint-01.md. Run `06-release sprint 1` — the release: decide whether this sprint may ship, given everything this project state records, and if it may, deploy it via the declared platform, verify the deployment, and record the release; if it may not, refuse with precise reasons and next steps, and deploy nothing. Write the release record to docs/release/release-report-sprint-01.md (machine-readable status frontmatter + evidence). The director has reviewed your approach and pre-approves the deploy plan you produce — do not pause for confirmation. Never write a secret value into any document: .env stays gitignored; record environment-variable names only.",
+      "expected_output": "docs/release/release-report-sprint-01.md with status: BLOCKED — the qa-report says SHIP (consistent tally), but the SPINE still carries unresolved intent: AMD-003 is pending in amendment-log.json and docs/spec/capabilities/digest.md carries a [NEEDS CLARIFICATION] marker in REQ-008's block. The report shows the gate READ the SHIP verdict (gate_qa_verdict: SHIP) and still blocked, cites AMD-003 and the marker's file, and routes to `00 reflect` / `/00-discovery` / the Tier-2 gate. NOTHING deployed: no _deploy/, no deployment-config.md, deployed_commit: none, gate: fail. AMD-003 is STILL pending afterwards (06 blocks on amendments; it never resolves them) and docs/spec/** is untouched.",
+      "files": [
+        "evals/fixtures/base/docs/**",
+        "evals/fixtures/app/**",
+        "evals/fixtures/cases/blocked-spine/**"
+      ],
+      "assertions": [
+        "Release report written at docs/release/release-report-sprint-NN.md (the auditable record, even on BLOCK)",
+        "The report declares a status — RELEASED | ROLLED-BACK | FAILED | BLOCKED",
+        "Gate evaluated in full — the report names the QA-verdict, amendments, markers, and code-identity checks",
+        "Non-amender: amendment-log rows/dispositions unchanged from the seed and docs/spec/** untouched",
+        "blocked-spine: status is BLOCKED — never RELEASED past a failing gate (the false-proceed guard)",
+        "blocked-spine: NOTHING was deployed — no _deploy/ exists (the gate refused before any machinery ran)",
+        "blocked-spine: no deployment-config scaffolded — a blocked run writes only the report",
+        "blocked-spine: machine frontmatter records no deploy — deployed_commit: none and gate: fail",
+        "blocked-spine: the gate read the SHIP verdict and STILL blocked (gate_qa_verdict: SHIP in the frontmatter)",
+        "blocked-spine: the pending amendment is cited by ID (AMD-003)",
+        "blocked-spine: the surviving marker is cited with its file (NEEDS CLARIFICATION in capabilities/digest.md)",
+        "blocked-spine: routed to the spine's owners — `00 reflect` / `/00-discovery` / the Tier-2 gate",
+        "blocked-spine: AMD-003 is STILL pending in the log — 06 blocked on it, it did not resolve it"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "patch-release",
+      "prompt": "A reviewed TeamPulse PATCH state is seeded in this repo (the WS1 expedite lane): the spine under docs/spec/, the built slice (src/, test/, scripts/ — the declared stand-in platform), the certified patch record at docs/planning/patches/patch-001.md, the backlog whose ## Patches ledger row reads in-progress, and the reviewer's patch-keyed QA report at docs/quality/qa-report-patch-001.md (verdict SHIP; review_mode: patch). Run `/06-release` on patch-001: decide whether the patch may ship given everything this state records — the SAME seven gate checks as a sprint, nothing waived — and if it may, deploy via the declared platform, verify, and record the release patch-keyed: the report at docs/release/release-report-patch-001.md, the tag release/patch-001, and the Patches ledger row advanced to done. The director pre-approves the deploy plan you produce — do not pause. Never write a secret value into any document.",
+      "expected_output": "docs/release/release-report-patch-001.md with status: RELEASED, release_mode: patch, patch: patch-001, and a full G1-G7 gate table (G1/G2/G5 read from qa-report-patch-001.md; each row with evidence). The deploy executed (_deploy/live/release.json; captured commands + exit codes); health + smoke captured; deployed_commit resolves with src/** identical to the patch review's final_commit; release notes cite REQ-008 + patch-001; the release/patch-001 tag exists; the backlog's Patches row reads done. No secret value under docs/**; spine + amendment log byte-identical (non-amender).",
+      "files": [
+        "evals/fixtures/base/docs/**",
+        "evals/fixtures/app/**",
+        "evals/fixtures/cases/patch/**"
+      ],
+      "assertions": [
+        "Release report written (the auditable record); a machine-readable status declared; the gate evaluated in full; non-amender (amendment log + docs/spec byte-identical to the seed)",
+        "patch-release: the report lands at the patch-keyed filename (release-report-patch-NNN.md)",
+        "patch-release: status RELEASED with gate: pass and gate_qa_verdict: SHIP (read from qa-report-patch-NNN.md)",
+        "patch-release: all seven gate checks evaluated — G1..G7 rows present (nothing waived)",
+        "patch-release: the deploy executed — _deploy/live/release.json + a captured command/exit-0 row",
+        "patch-release: deployed_commit resolves and src/** is identical to the patch review's final_commit (G5)",
+        "patch-release: the release is tagged release/patch-001 at the deployed commit",
+        "patch-release: the Patches ledger row advanced to done (the release completes the expedite lane)",
+        "patch-release: REQ-keyed release notes cite the owning REQ (REQ-008) and the patch id",
+        "patch-release: no secret VALUE anywhere under docs/** (env-var names only)"
+      ]
+    }
+  ]
+}

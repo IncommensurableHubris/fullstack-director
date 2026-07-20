@@ -1,0 +1,80 @@
+{
+  "skill_name": "05-reviewer",
+  "note": "Input is a seeded BUILT SLICE (a 04 output), NOT a spine or a realization: a git repo with two commits (baseline = docs/spine + slice; final = + src/** + node:test tests) plus a build-handoff at _artifacts/exports/build-handoff-sprint-01.md carrying the REAL baseline/final SHAs, a spec_slice_hash, and per-VC evidence states. Produced by evals/build_fixture.py (--case clean|defective|patch), which git-inits + makes the two commits + renders the handoff so 05's diff-reconstruction, oracle re-run, and hash recomputation are all real. The patch case is the WS1 expedite lane: baseline = the SHIPPED sprint-01 state + the certified patch record + the in-progress Patches ledger row; final = the patch fix + its regression test; the handoff is patch-keyed (review_mode: patch; spec_slice_hash over the PATCH RECORD alone). The slice reuses the zero-dep-Node/node:test TeamPulse digest domain (recordStandup + assembleDigest; REQ-001/008/009; VC-01/02/03), so node --test runs offline + deterministically. Grade with check_review.py (deterministic — verdict correctness + each planted defect named in a structured finding + the reproducing RED test + ledger<->verdict consistency + the isolation attestation + spec_slice_hash recompute; no LLM judge). Review *prose* is NOT graded (a strong baseline reviews code too); the lift is the isolated, honest, false-positive-controlled verdict that can gate a ship. The three cases are F1-framed: clean-ship (specificity — SHIP, ~0 findings) + defective-fix (sensitivity — catch 3 orthogonal plants) together penalize BOTH over-approval and crying-wolf. isolation reuses the clean fixture and grades the attestation.",
+  "run_notes": "with_skill arms load .agents/skills/05-reviewer/SKILL.md and run `05-reviewer sprint 1` autonomously. Each arm must: (a) read ONLY the build-handoff (_artifacts/exports/build-handoff-sprint-01.md) + the spec-slice paths (docs/planning/sprints/sprint-01.md + the in-scope docs/spec/capabilities/*.md REQ blocks) — NEVER a build conversation (there is none; this is the point); (b) SEED gate — verify baseline_commit resolves + recompute spec_slice_hash and compare to the handoff (mismatch => BLOCK); (c) PASS 1 deterministic — Capability Probe, re-run the handoff's oracles at final_commit, File-List<->diff, coverage arithmetic, the anti-tautology litmus (mutate a changed line -> a still-green suite is hollow); (d) PASS 2 from a FRESH-CONTEXT reviewer subagent (a real subagent where supported, else a fresh top-level invocation) seeded only with the realization + the spec-slice declarations — acceptance conformance, correctness-that-affects-REQs, design fidelity; re-derived severity; no finding quota; (e) for a testable defect, commit a reproducing RED test under src/** or test/** (a *.test.js that FAILS against the defective impl) — 05 owns RED, 04 owns GREEN; (f) write docs/quality/qa-report-sprint-01.md (frontmatter tally + Verification Ledger + Traceability + Findings + Capability Probe + the context attestation). Relax the harness <SUBAGENT-STOP> for 05 so the reviewer subagent runs (the 03 precedent; docs/eval-methodology/harness-reference/). baseline arms perform the same prompt with NO skill (ignore framework files) — they typically review the code ad-hoc, may rubber-stamp the defective build (echo the handoff's optimistic EXECUTED/FULL claims), cry wolf on the clean build, and emit no attestation / no verification ledger / no structured finding / no reproducing RED test. Harness per arm: `python .agents/skills/05-reviewer/evals/build_fixture.py --case <clean|defective> --out <arm>/outputs` (clean-ship + isolation use --case clean; defective-fix uses --case defective; patch-review uses --case patch), then the arm reviews outputs/ and writes the report there, then `python .agents/skills/05-reviewer/evals/check_review.py --outputs <arm>/outputs --case <case>`; copy grading.json to <arm>/grading.json for the viewer. Workspaces OUTSIDE .agents/skills/** (e.g. _artifacts/skills-eval/05-reviewer/iteration-N/<case>/<arm>/outputs/).",
+  "evals": [
+    {
+      "id": 1,
+      "name": "clean-ship",
+      "prompt": "A built TeamPulse sprint-1 slice and its build-handoff are already seeded in this repo (a git repo whose baseline commit is the spine + slice and whose final commit adds src/** + node:test tests). Run `05-reviewer sprint 1`. You are the context-isolated reviewer: read ONLY the build-handoff at _artifacts/exports/build-handoff-sprint-01.md + the spec-slice paths (docs/planning/sprints/sprint-01.md and the in-scope docs/spec/capabilities/*.md REQ blocks) — there is no build conversation and you must not invent one. Verify baseline_commit resolves and recompute spec_slice_hash and compare to the handoff. Run the Capability Probe; re-run the handoff's oracles at final_commit; reconcile the File List against the diff; check REQ coverage; run the anti-tautology litmus. Then run the semantic pass from a FRESH-CONTEXT reviewer subagent (acceptance conformance, correctness that affects REQs) — re-derive your own judgment; impose no finding quota. Assemble the Verification Ledger and write the verdict + a context attestation to docs/quality/qa-report-sprint-01.md using the template. This slice is sound: every VC is honestly EXECUTED by a real test, so expect SHIP with ~zero findings.",
+      "expected_output": "docs/quality/qa-report-sprint-01.md with verdict SHIP; findings ~0 (no invented defects — the crying-wolf guard); Verification Ledger Executed 3 / Inferred 0; a Capability Probe with the node --test command + exit 0; and a context attestation ('inputs: [build-handoff, spec slice]; build conversation: not provided'; the reviewed baseline_commit == the handoff's; spec_slice_hash: match; opened-files subset of the seed). No src/** implementation, docs/spec, docs/architecture, or docs/design file edited.",
+      "files": ["evals/fixtures/base/docs/**", "evals/fixtures/clean/**"],
+      "assertions": [
+        "QA report written at docs/quality/qa-report-sprint-NN.md (the verdict a human/06 acts on)",
+        "The report states a verdict — SHIP | FIX REQUIRED | BLOCK",
+        "Context attestation present: 'build conversation: not provided' (the auditable isolation proof)",
+        "Attested baseline_commit matches the handoff's baseline_commit (reviewed the handed-off diff anchor)",
+        "spec_slice_hash: the grader's recompute over the seeded slice equals the handoff's (a real binding)",
+        "The report records the spec_slice_hash verification (match, for a slice that did not drift)",
+        "clean-ship: verdict is SHIP (a sound build verifies cleanly)",
+        "clean-ship: ~zero findings (the false-positive / crying-wolf guard — no invented defects)",
+        "clean-ship: Verification Ledger Inferred = 0 (SHIP requires real execution evidence for every behavior)"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "defective-fix",
+      "prompt": "A built TeamPulse sprint-1 slice and its build-handoff are already seeded in this repo (baseline = spine + slice; final = + src/** + node:test tests). The build-handoff OPTIMISTICALLY claims every VC EXECUTED and every REQ FULL. Run `05-reviewer sprint 1`. You are the context-isolated reviewer: read ONLY the build-handoff at _artifacts/exports/build-handoff-sprint-01.md + the spec-slice paths — never a build conversation, and do NOT trust the handoff's claims; re-derive from the outcome-Gherkin. Verify baseline_commit + recompute spec_slice_hash. Run PASS 1 (Capability Probe; re-run the oracles at final_commit; File-List<->diff; coverage arithmetic; the anti-tautology litmus — mutate a changed line and see whether the suite stays green). Run PASS 2 from a fresh-context reviewer subagent (read assembleDigest against REQ-008's frozen Gherkin). For each testable defect you find, COMMIT a reproducing RED test under src/** or test/** that fails against the current implementation (you own RED; 04 will own GREEN — you may not edit implementation code). Write the verdict + a machine-readable tally + a structured Findings table + the context attestation to docs/quality/qa-report-sprint-01.md. Expect FIX REQUIRED: the slice hides a REQ-008 grouping bug behind a single-member test, a tautological REQ-001/VC-01 test, and a REQ-009 that is claimed FULL but has no covering test.",
+      "expected_output": "docs/quality/qa-report-sprint-01.md with verdict FIX REQUIRED (not SHIP — the over-approval guard). The Findings table names all three plants in structured rows: PLANT A — the REQ-008 / VC-02 grouping bug (assembleDigest returns only the first member), with a committed reproducing RED test (a new *.test.js that FAILS against the defective impl); PLANT B — the tautological/hollow VC-01 dedup test (stays green under a mutation of the dedup line); PLANT C — REQ-009 / VC-03 claimed FULL/EXECUTED but uncovered (no test asserts needs-help). The ledger is consistent with the not-SHIP verdict (findings > 0 / a MUST-gap / Inferred > 0); every finding carries a pointer; the context attestation is present and valid. No src/** implementation file edited (05 is read-only; only a reviewer test is added).",
+      "files": ["evals/fixtures/base/docs/**", "evals/fixtures/defective/**"],
+      "assertions": [
+        "QA report written at docs/quality/qa-report-sprint-NN.md (the verdict a human/06 acts on)",
+        "The report states a verdict — SHIP | FIX REQUIRED | BLOCK",
+        "Context attestation present: 'build conversation: not provided' (the auditable isolation proof)",
+        "Attested baseline_commit matches the handoff's baseline_commit (reviewed the handed-off diff anchor)",
+        "spec_slice_hash: the grader's recompute over the seeded slice equals the handoff's (a real binding)",
+        "The report records the spec_slice_hash verification (match, for a slice that did not drift)",
+        "defective-fix: verdict is NOT SHIP (FIX REQUIRED/BLOCK — the over-approval / self-preference guard)",
+        "defective-fix: PLANT A named — a finding cites the REQ-008 grouping bug (REQ-008 / VC-02)",
+        "defective-fix: PLANT B named — a finding flags the tautological/hollow VC-01 test (test integrity)",
+        "defective-fix: PLANT C named — a finding flags REQ-009 uncovered / falsely claimed FULL (coverage)",
+        "defective-fix: 05 emitted a reproducing RED test (a new *.test.js that FAILS against the defective impl)",
+        "defective-fix: ledger↔verdict consistent (not-SHIP backed by findings / a MUST-gap / INFERRED > 0)",
+        "defective-fix: every finding carries a pointer (file:line / test path / the handoff location)"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "isolation",
+      "prompt": "A built TeamPulse sprint-1 slice and its build-handoff are already seeded in this repo. Run `05-reviewer sprint 1` as the context-isolated reviewer, seeded with ONLY the build-handoff (_artifacts/exports/build-handoff-sprint-01.md) + the spec-slice paths — never a build conversation. Run the review (SEED gate; PASS 1 deterministic; PASS 2 from a fresh-context reviewer subagent; ledger + verdict). Then write docs/quality/qa-report-sprint-01.md whose context attestation is auditable: it names its inputs ('inputs: [build-handoff, spec slice]'), states 'build conversation: not provided', records the reviewed baseline_commit (which must equal the handoff's), and asserts that the files you opened are a subset of the seed (the handoff + the spec-slice paths + src/** at final_commit — nothing from a build session). This slice is sound (SHIP), but the graded property here is the isolation proof.",
+      "expected_output": "docs/quality/qa-report-sprint-01.md whose context attestation is present and valid: it names its inputs as the handoff + the spec slice; states 'build conversation: not provided'; the reviewed baseline_commit resolves to the handoff's baseline_commit; and it asserts opened-files subset of the seed. The parent transcript shows no builder-reasoning markers (the manual half of the isolation proof, per shared/subagent-protocol.md).",
+      "files": ["evals/fixtures/base/docs/**", "evals/fixtures/clean/**"],
+      "assertions": [
+        "QA report written at docs/quality/qa-report-sprint-NN.md (the verdict a human/06 acts on)",
+        "The report states a verdict — SHIP | FIX REQUIRED | BLOCK",
+        "Context attestation present: 'build conversation: not provided' (the auditable isolation proof)",
+        "Attested baseline_commit matches the handoff's baseline_commit (reviewed the handed-off diff anchor)",
+        "spec_slice_hash: the grader's recompute over the seeded slice equals the handoff's (a real binding)",
+        "The report records the spec_slice_hash verification (match, for a slice that did not drift)",
+        "isolation: the attestation names its inputs (the handoff + the spec slice — the seed)",
+        "isolation: 'build conversation: not provided' — the reviewer never read the build session",
+        "isolation: the attested baseline_commit resolves to the handoff's (reviewed exactly the handed diff)",
+        "isolation: the attestation asserts opened-files ⊆ seed (auditable scope of what 05 read)"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "patch-review",
+      "prompt": "The WS1 patch funnel produced a patch build for review. Seeded in this repo: the project at final_commit (the shipped sprint-01 state + the patch-001 fix — an inclusive lock-boundary comparison + the reproducing regression test), the certified patch record at docs/planning/patches/patch-001.md, the Patches ledger row (in-progress), and the patch-keyed handoff at _artifacts/exports/build-handoff-patch-001.md (review_mode: patch; spec_slice_path = the patch record). Run `05-reviewer` on patch-001: seed = the handoff + the patch record + the owning REQ blocks (REQ-008) ONLY; recompute spec_slice_hash over the record alone; re-run the oracles at final_commit; emit the verdict + machine tally + context attestation at docs/quality/qa-report-patch-001.md. Run to completion.",
+      "expected_output": "A patch-keyed QA report (docs/quality/qa-report-patch-001.md): verdict SHIP (the sound patch verifies cleanly within its bounded scope), ledger Inferred = 0, ~0 findings, spec_slice_hash recorded as match (recomputed over the patch record alone — no manifest half), the context attestation present ('build conversation: not provided'; attested baseline = the handoff's), and the seed manifest listing the patch record + the owning REQ blocks. Honesty gates unchanged: SHIP would be unreachable were any behavior INFERRED.",
+      "files": ["evals/fixtures/base/docs/**", "evals/fixtures/patch/**"],
+      "assertions": [
+        "QA report written; verdict stated; context attestation present; attested baseline_commit matches the handoff's; spec_slice_hash binding real and recorded as match (recomputed over the PATCH RECORD alone)",
+        "patch-review: the seed manifest lists the patch record (docs/planning/patches/patch-NNN.md)",
+        "patch-review: the review is patch-keyed (report names patch-001; filename qa-report-patch-NNN.md)",
+        "patch-review: verdict SHIP with Ledger Inferred = 0 (the sound patch verifies cleanly, bounded scope)",
+        "patch-review: honesty gate unchanged — SHIP is unreachable while any behavior is INFERRED"
+      ]
+    }
+  ]
+}

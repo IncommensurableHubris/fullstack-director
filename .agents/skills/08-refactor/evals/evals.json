@@ -1,0 +1,82 @@
+{
+  "skill_name": "08-refactor",
+  "note": "Input is a seeded PRE-REFACTOR project state (produced by evals/build_fixture.py): a git repo whose ROOT commit carries the spine (docs/spec/**), the realization docs (docs/architecture/**, incl. system.md's §5 module inventory), and a built, GREEN, BITING slice under src/** + test/** — TeamPulse's sprint-02 HTTP surface (server.js + auth.js + store.js over the pure digest.js core; test/api.test.js is the behavior oracle). 08 refactors src/** in place, reconciles the realization docs LOCALLY, and — only for a DECLARATION contradiction — appends docs/spec/amendment-log.json. Grade with check_refactor.py (deterministic — no LLM judge). 08's lift is NOT 'cleaner code' (a strong baseline refactors too); it is (1) PROVABLE behavior preservation — the oracle stays blob-UNCHANGED vs the pre-refactor commit (never rewritten to fake green), node --test GREEN at HEAD, and still BITING (a single-point mutation fails it); and (2) CORRECTLY-ROUTED reconcile — a code↔doc drift is fixed LOCALLY (system.md, no amendment row) while a declaration contradiction is escalated as a Tier-2 amendment row + a resolving ADR. Refactor PROSE is NOT graded. Four cases — a two-axis F1 (act? collapse?) + the appender arm: needs-refactor (true smells → refactored, behavior preserved, system.md reconciled locally, ZERO amendment rows) vs clean (crying-wolf guard — ACCEPT, src unchanged, no invented amendment) vs reconcile (a datastore(in-memory) vs multi-instance-scale contradiction → a Tier-2 GATED amendment + a resolving ADR naming a client-server store) vs behavior-trap (a FALSE duplication the oracle pins → the tempting collapse breaks a path; 08 must PRESERVE behavior + keep both divergent operators). Polarity vs 07: 07 proves value by src/** BYTE-IDENTICAL (read-only); 08 proves it by src/** CHANGED (the smell is gone) WHILE behavior holds.",
+  "run_notes": "with_skill arms load .agents/skills/08-refactor/SKILL.md and run `08-refactor sprint 2` autonomously to completion. 08 is SEQUENTIAL — no subagents (nothing to relax in <SUBAGENT-STOP>); Reconcile runs INLINE. Each arm must: (a) ASSESS — a single sequential health pass over src/** + the realization docs (duplication, dead code, doc↔code drift, constraint conformance); apply the Decision Matrix; write docs/refactoring/health-assessment-sprint-02.md; (b) SCOPE + SAFETY NET — establish the behavior oracle (the existing test/api.test.js is green at the pre-refactor commit; add characterization tests only for uncovered targets; the oracle bites); (c) EXECUTE — behavior-preserving baby steps: dedupe (Extract Function), delete dead code, etc., NEVER editing test/api.test.js and NEVER changing behavior — the suite stays green + biting; (d) RECONCILE — correct system.md LOCALLY for a code↔doc drift (no amendment); append a Tier-2 amendment-log row + request an ADR max+1 ONLY for a declaration contradiction (the reconcile case); (e) REPORT — docs/refactoring/refactor-report-sprint-02.md with a machine verdict (CLEAN/PARTIAL/BLOCKED/ACCEPT). NEVER fix a bug (→/05), a vuln (→/07), or add a feature (→/04) — Two Hats. baseline arms perform the same prompt with NO skill (ignore framework files) — they typically DO refactor well (a strong engineer), but ad-hoc: they may rewrite the oracle to make it pass, break a subtle behavior, invent refactors on clean code, collapse a false duplication, or silently 'fix' a declaration contradiction locally instead of surfacing an amendment row. That gap is the graded lift. Harness per arm: `python .agents/skills/08-refactor/evals/build_fixture.py --case <needs-refactor|clean|reconcile|behavior-trap> --out <arm>/outputs`, then the arm runs `08-refactor sprint 2` over outputs/ as the project root, then `python .agents/skills/08-refactor/evals/check_refactor.py --outputs <arm>/outputs --case <case>`; copy grading.json to <arm>/grading.json for the viewer. Workspaces OUTSIDE .agents/skills/** (e.g. _artifacts/skills-eval/08-refactor/iteration-N/<case>/<arm>/outputs/).",
+  "evals": [
+    {
+      "id": 1,
+      "name": "needs-refactor",
+      "prompt": "A pre-refactor TeamPulse sprint-2 project state is seeded in this repo: the spine under docs/spec/, the realization docs under docs/architecture/ (system.md §5 lists the modules), and the built sprint-2 slice under src/ with a behavior oracle at test/api.test.js (green). The digest core (src/digest.js) has accumulated structural debt: `assembleTeamDigest` copy-pastes the grouping + needs-help extraction from `assembleDigest` verbatim, and `legacyDigestText` is an unused dead export (the last remnant of a dropped 'reporting' feature that docs/architecture/system.md still documents as a phantom `src/reporting.js` module). Run `08-refactor sprint 2` — assess health, then execute a BEHAVIOR-PRESERVING refactor: remove the duplication (Extract Function), delete the dead code, and reconcile system.md to the refactored code. Preserve behavior — the test oracle test/api.test.js must stay green WITHOUT being edited, and must still bite. Write docs/refactoring/health-assessment-sprint-02.md and docs/refactoring/refactor-report-sprint-02.md. A code↔doc drift is a LOCAL realization fix — do not amend the spine for it.",
+      "expected_output": "src/digest.js refactored: the grouping + needs-help extraction is a shared helper (the needs-help mapping appears once, not twice), and legacyDigestText is gone — with test/api.test.js UNCHANGED, node --test green, and a mutation of the refactored code still failing the suite (behavior preserved + biting). The health assessment names the duplication, the dead code, and the system.md doc↔code drift. system.md is reconciled locally — the phantom src/reporting.js module row is removed. NO amendment-log row is appended (a code↔doc drift is local). The refactor report declares a machine verdict (CLEAN).",
+      "files": ["evals/fixtures/base/**", "evals/fixtures/app/**", "evals/fixtures/cases/needs-refactor/**"],
+      "assertions": [
+        "Health assessment written at docs/refactoring/health-assessment-sprint-NN.md",
+        "Refactor report written at docs/refactoring/refactor-report-sprint-NN.md with a machine verdict (CLEAN/PARTIAL/BLOCKED/ACCEPT)",
+        "amendment-log.json is valid JSON with an 'amendments' array",
+        "Behavior oracle UNCHANGED: test/api.test.js is blob-identical to the pre-refactor commit (the refactor did not rewrite its own tests to fake green)",
+        "Behavior preserved: `node --test` is GREEN at HEAD with a positive test count (the suite still passes after the refactor)",
+        "Oracle BITES (anti-tautology): a single-point source mutation makes the suite FAIL — the green is a real behavior check, not vacuous",
+        "Test files carry real assertions (no assertion-free suite)",
+        "Smell removed — DUPLICATION collapsed: the copy-pasted needs-help mapping now appears once, not twice (Extract Function)",
+        "Smell removed — DEAD CODE deleted: the unused `legacyDigestText` export is gone from src/**",
+        "Health assessment NAMED the duplication (a copy-pasted assembly / assembleTeamDigest)",
+        "Health assessment NAMED the dead code (the unused legacyDigestText / a dead export)",
+        "Health assessment NAMED the doc↔code drift (system.md documents a src/reporting.js that was never built)",
+        "LOCAL reconcile: system.md was corrected to the refactored code — the phantom `src/reporting.js` module row is gone and the file changed vs the pre-refactor commit",
+        "Reconcile stayed LOCAL: no amendment row appended and docs/spec/** unchanged (a code↔doc drift is a realization fix, not a spine amendment)"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "clean",
+      "prompt": "A pre-refactor TeamPulse sprint-2 project state is seeded in this repo: the spine under docs/spec/, the realization docs under docs/architecture/, and the built sprint-2 slice under src/ with a behavior oracle at test/api.test.js (green). The code is the hardened sprint-2 surface — small, single-responsibility modules (server.js, auth.js, store.js, the pure digest.js core), no duplication, no dead code, no doc↔code drift. Run `08-refactor sprint 2` — assess health and decide. Write docs/refactoring/health-assessment-sprint-02.md and docs/refactoring/refactor-report-sprint-02.md. Refactor only what genuinely warrants it (Decision Matrix); do not invent refactors on healthy code, and do not amend the spine.",
+      "expected_output": "The health assessment concludes ACCEPT (good structure + good logic — nothing to refactor). src/** is left byte-identical (no invented refactor — the crying-wolf guard), the suite stays green, no amendment-log row is invented, and the refactor report declares a machine verdict (ACCEPT).",
+      "files": ["evals/fixtures/base/**", "evals/fixtures/app/**", "evals/fixtures/cases/clean/**"],
+      "assertions": [
+        "Health assessment written at docs/refactoring/health-assessment-sprint-NN.md",
+        "Refactor report written at docs/refactoring/refactor-report-sprint-NN.md with a machine verdict (CLEAN/PARTIAL/BLOCKED/ACCEPT)",
+        "amendment-log.json is valid JSON with an 'amendments' array",
+        "Crying-wolf guard: the hardened app/ is left UNCHANGED — no invented refactor (src/** byte-identical to the pre-refactor commit)",
+        "The suite still passes (a no-op refactor did not break the clean build)",
+        "Reconcile stayed LOCAL: no amendment row appended and docs/spec/** unchanged (a code↔doc drift is a realization fix, not a spine amendment)",
+        "Verdict is ACCEPT/CLEAN — the assessment concluded the code is healthy (don't fix what isn't broken)"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "reconcile",
+      "prompt": "A pre-refactor TeamPulse sprint-2 project state is seeded in this repo. docs/spec/architecture-constraints.md now states TWO declarations that collide: the datastore is 'in-memory (embedded, single-process)', while the sprint-2 scale mandate is 'the API runs as multiple stateless instances behind a load balancer'. The store layer (src/store.js) is an in-memory object. Run `08-refactor sprint 2` — assess health and reconcile the realization against the spine. When a refactor of the store layer surfaces that a STATED constraint cannot be honored (an embedded single-process store cannot back multiple stateless instances), that is a DECLARATION contradiction — surface it through the amendment protocol, do not silently change it. Write docs/refactoring/health-assessment-sprint-02.md and docs/refactoring/refactor-report-sprint-02.md.",
+      "expected_output": "A NEW Tier-2 amendment-log row (AMD-003) cites the datastore↔scale contradiction, GATED→approved (not auto-applied), with a source_quote preserving the in-memory constraint line and the multi-instance mandate, resolved_by a refactoring ADR (ADR-003, requested max+1 from 03) whose Decision names a client-server datastore (e.g. PostgreSQL). The migration itself is plan-only (routed to /03→/04). The refactor report declares a machine verdict (BLOCKED or PARTIAL). The suite stays green.",
+      "files": ["evals/fixtures/base/**", "evals/fixtures/app/**", "evals/fixtures/cases/reconcile/**"],
+      "assertions": [
+        "Health assessment written at docs/refactoring/health-assessment-sprint-NN.md",
+        "Refactor report written at docs/refactoring/refactor-report-sprint-NN.md with a machine verdict (CLEAN/PARTIAL/BLOCKED/ACCEPT)",
+        "amendment-log.json is valid JSON with an 'amendments' array",
+        "Validity: the amendment source_quote preserves the real contradiction — an in-memory/embedded datastore against a multi-instance / shared-store requirement",
+        "Appender: a NEW Tier-2 amendment row cites the datastore contradiction, GATED (not auto-applied), resolved_by an ADR — surfaced through the amendment channel, not a silent local edit",
+        "Tech-mandate flow: the resolving ADR's Decision names a client-server / shared datastore (not still in-memory)",
+        "08 acted as an APPENDER: the amendment log grew by a declaration-level row (the inverse of the local-drift cases, where it must stay unchanged)",
+        "The suite still passes (surfacing the contradiction did not break the build)"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "behavior-trap",
+      "prompt": "A pre-refactor TeamPulse sprint-2 project state is seeded in this repo, with a behavior oracle at test/api.test.js (green). src/digest.js has two functions that LOOK like copy-paste duplication — `dailyView` and `cumulativeView` — but they are NOT duplicates: dailyView scopes to the exact day (`e.day === day`) while cumulativeView scopes to that day and every day before it (`e.day <= day`). The oracle pins both distinct behaviors. Run `08-refactor sprint 2` — assess and refactor for health, but PRESERVE behavior. Do not collapse the false duplication (it would silently change one view). Write docs/refactoring/health-assessment-sprint-02.md and docs/refactoring/refactor-report-sprint-02.md. The oracle test/api.test.js must stay green WITHOUT being edited, and must still bite.",
+      "expected_output": "Both distinct day-scope operators survive in src (`e.day === day` AND `e.day <= day`) — the false duplication was NOT collapsed; only the genuinely-shared shaping may be extracted (parameterizing the divergent filter). test/api.test.js is UNCHANGED, node --test is green, a mutation still fails the suite. No amendment-log row is invented. The assessment/report recognizes the two paths are not true duplicates. The refactor report declares a machine verdict.",
+      "files": ["evals/fixtures/base/**", "evals/fixtures/app/**", "evals/fixtures/cases/behavior-trap/**"],
+      "assertions": [
+        "Health assessment written at docs/refactoring/health-assessment-sprint-NN.md",
+        "Refactor report written at docs/refactoring/refactor-report-sprint-NN.md with a machine verdict (CLEAN/PARTIAL/BLOCKED/ACCEPT)",
+        "amendment-log.json is valid JSON with an 'amendments' array",
+        "Behavior oracle UNCHANGED: test/api.test.js is blob-identical to the pre-refactor commit (the refactor did not rewrite its own tests to fake green)",
+        "Behavior preserved: `node --test` is GREEN at HEAD with a positive test count (the suite still passes after the refactor)",
+        "Oracle BITES (anti-tautology): a single-point source mutation makes the suite FAIL — the green is a real behavior check, not vacuous",
+        "Test files carry real assertions (no assertion-free suite)",
+        "Divergence PRESERVED: both distinct day-scope operators survive in src — the exact-day filter (`e.day === day`) AND the cumulative filter (`e.day <= day`); the false duplication was not collapsed",
+        "Reconcile stayed LOCAL: no amendment row appended and docs/spec/** unchanged (a code↔doc drift is a realization fix, not a spine amendment)",
+        "Recognition (lenient): the assessment/report noted the two look-alike paths are not true duplicates (or explicitly refrained from collapsing them)"
+      ]
+    }
+  ]
+}

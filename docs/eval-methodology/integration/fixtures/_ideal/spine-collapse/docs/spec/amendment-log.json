@@ -1,0 +1,24 @@
+{
+  "amendments": [
+    {
+      "id": "AMD-001",
+      "req": null,
+      "skill": "03-architect",
+      "tier": 2,
+      "disposition": "approved",
+      "source_quote": "architecture-constraints.md: 'Datastore: SQLite (embedded, single-file; no external database server)' — cannot satisfy 'two or more stateless instances behind a load balancer ... share one datastore'",
+      "supersedes": null,
+      "resolved_by": "ADR-001"
+    },
+    {
+      "id": "AMD-004",
+      "req": null,
+      "skill": "00-discovery",
+      "tier": 2,
+      "disposition": "approved",
+      "source_quote": "architecture-constraints.md / Constitution item 4: 'EU region only (data residency)' — upstream pivot: the user added US-based teams, relaxing data residency to per-region (EU + US). The JTBD is unchanged; the spine regenerates from the charter, it does not shatter.",
+      "supersedes": null,
+      "resolved_by": null
+    }
+  ]
+}

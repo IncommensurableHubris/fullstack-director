@@ -1,0 +1,28 @@
+{
+  "amendments": [
+    {
+      "id": "AMD-1",
+      "req": "scope-add: CSV import",
+      "skill": "00-discovery",
+      "tier": 3,
+      "disposition": "approved",
+      "source_quote": "Also, could we let people import their existing bookmarks from a CSV export of their old browser? Not urgent — just flag it for later."
+    },
+    {
+      "id": "AMD-2",
+      "req": "scope-drop: mobile support",
+      "skill": "00-discovery",
+      "tier": 3,
+      "disposition": "approved",
+      "source_quote": "Honestly, I'm not sure we need the mobile app for v1 at all — maybe we ship desktop-only and revisit mobile later."
+    },
+    {
+      "id": "AMD-3",
+      "req": "scope-change: reprioritize offline mode",
+      "skill": "00-discovery",
+      "tier": 3,
+      "disposition": "approved",
+      "source_quote": "Offline reading might need to be a MUST, not a SHOULD, if we're serious about the 'available anywhere' pitch — but let's not decide that today."
+    }
+  ]
+}

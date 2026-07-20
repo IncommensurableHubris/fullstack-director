@@ -1,0 +1,3 @@
+# derived probe outputs written during selftest validation runs — never fixtures
+**/probe-report.json
+**/audit.json

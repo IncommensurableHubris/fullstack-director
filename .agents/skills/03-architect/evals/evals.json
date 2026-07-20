@@ -1,0 +1,99 @@
+{
+  "skill_name": "03-architect",
+  "note": "Input is a SPINE slice + the 02 design contract (a spine + sprint-01.md + docs/design/approved/sprint-01/manifest.md), like 02. Each case's fixture is a full spine tree under evals/fixtures/<case>/docs/. At eval time the fixture's docs/ is seeded into the arm's outputs/ (the project root); the skill ADDS docs/architecture/ (system.md + adr/ + specs/) and APPENDS docs/spec/amendment-log.json, and may AMEND docs/spec/architecture-constraints.md via a gated Tier-2 — without touching docs/spec/capabilities/. This fixture runs init + sprint-1 together (sprint 1 follows init), so the grader checks both system.md/ADR-001 (init) and specs/ + coverage (sprint). Grade with check_architecture.py (deterministic, structural + amendment-aware — no LLM judge). Architecture *beauty* is not graded; the lift is the structured contract the next skills consume PLUS the subagent-isolated Reconcile. The three fixtures are isolated variants differing in exactly one line — the architecture-constraints Datastore field (stated-compatible / stated-incompatible / underspecified) — so any behavior delta is attributable to that line alone (the aurora-clean/aurora-contrast trick). The one deterministic discriminator for an *architecture* contradiction is the token-in-named-field set-match the grader runs over the constraint token vs the realization's named fields (the system.md stack, the ADR Decision). Cases 4-5 (data-modules / data-nogate) grade the data-architecture craft through the focused grade_data_arch path — design record: _artifacts/data-architecture-phase1-design.md.",
+  "run_notes": "with_skill arms must (a) run autonomously past both gates — proceed without waiting; approve their own batched Tier-2 amendments so they land as `approved` rows; (b) run the Reconcile judgment pass from a FRESH-CONTEXT reconciler (a real subagent where supported, else a fresh top-level invocation) that receives only the realization + the slice's declarations — never the realization conversation — and record its one-line context attestation in docs/architecture/ (system.md §9 or a reconcile note). Relax the harness <SUBAGENT-STOP> for 03 so the reconciler runs (see docs/eval-methodology/harness-reference/). baseline arms perform the same prompt with NO skill (ignore framework files).",
+  "evals": [
+    {
+      "id": 1,
+      "name": "clean-constraint",
+      "prompt": "The TeamPulse spec spine is already in docs/spec/, the sprint-1 slice in docs/planning/sprints/sprint-01.md, and the approved design contract in docs/design/approved/sprint-01/manifest.md. Run the architect for the first architecture: `03-architect init` then `03-architect sprint 1`. Realize the system architecture under docs/architecture/ — an arc42/C4 system.md with a strategic-DDD bounded-context map referencing the sprint's REQs, ADR-001 (tech stack) as a MADR record with a checkable Rule + the adr/README.md index, and per-feature specs with Verification Contracts covering the manifest's DM-IDs — and run the Reconcile pass against docs/spec/architecture-constraints.md. The constraints are fully stated and the natural architecture honors them, so expect few or no amendments.",
+      "expected_output": "Under docs/architecture/: system.md (arc42 subset: Constraints, C4 L1/L2, bounded contexts, §8 crosscutting + banned-list, §10 measurable quality scenarios) referencing the sprint's REQ-IDs; adr/ADR-001.md (MADR + Binds/Prevents/Rule + Satisfies) and adr/README.md (the index); >=1 specs/<feature>.md referencing the sprint's REQs with mechanically-gradeable Verification Contracts and Design Contract Coverage of the manifest DM-IDs. The stated envelope (PostgreSQL client-server datastore, EU region, magic-link/no third-party SSO) is HONORED by the realization; because the envelope is consistent and honorable, Reconcile yields ~zero amendments (the false-positive check). docs/spec/capabilities/ is untouched.",
+      "files": ["evals/fixtures/teampulse-clean/docs/**"],
+      "assertions": [
+        "system.md written at docs/architecture/system.md",
+        "system.md carries a C4 diagram (Mermaid C4 canonical, or an ASCII fallback)",
+        "system.md has a strategic-DDD bounded-context map",
+        "system.md follows the arc42 subset (>=4 sections incl. Crosscutting Concepts + Quality)",
+        "system.md references the spine by REQ-ID",
+        "ADR registry: adr/README.md index + >=1 MADR ADR with a checkable Rule (Binds/Prevents/Rule)",
+        "ADR IDs are contiguous from ADR-001 with no gaps/dupes (max+1 allocation)",
+        "A feature spec references the sprint's REQs and carries a Verification Contract (method + pass-criterion)",
+        "REQ coverage: every in-scope sprint REQ is covered by >=1 feature spec",
+        "DM coverage (forward): every required 02-manifest DM-ID is covered by a feature spec",
+        "amendment-log.json is valid JSON with an 'amendments' array",
+        "Reconciler isolation: a context attestation is recorded",
+        "Validity: the stated datastore is a client-server DB compatible with the availability requirement",
+        "HONORS the envelope: realization keeps the stated client-server datastore and introduces no third-party SSO",
+        "False-positive check: a clean, honored envelope yields no invented amendments (<=1)"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "forbidden-token",
+      "prompt": "The TeamPulse spec spine is already in docs/spec/, the sprint-1 slice in docs/planning/sprints/sprint-01.md, and the approved design contract in docs/design/approved/sprint-01/manifest.md. Run the architect: `03-architect init` then `03-architect sprint 1`. Realize the system architecture under docs/architecture/ (arc42/C4 system.md referencing REQs, MADR ADRs + index, per-feature specs with Verification Contracts covering the manifest DM-IDs), and run the Reconcile pass against docs/spec/architecture-constraints.md. Pay attention to the stated datastore against the stated availability requirement.",
+      "expected_output": "The same structured architecture contract as case 1, PLUS: the token-in-named-field detector computes that the stated datastore (SQLite, embedded, no external DB server) cannot be the single shared store for the stated 'two or more stateless instances + a separate always-on worker' availability requirement — a computed contradiction. So Reconcile emits a Tier-2, gated/approved amendment-log.json row citing the SQLite/datastore contradiction (NOT auto-applied, NOT silently swapped, NOT silently shipped), and — via the tech-mandate flow — records a resolving ADR whose Decision names a client-server datastore (e.g. PostgreSQL) and amends architecture-constraints.md's Datastore line. resolved_by links the row to the ADR.",
+      "files": ["evals/fixtures/teampulse-sqlite/docs/**"],
+      "assertions": [
+        "The structural contract (system.md arc42/C4 + bounded contexts + REQ refs; MADR ADR registry + index; feature specs with Verification Contracts; REQ + DM coverage)",
+        "amendment-log.json is valid JSON with an 'amendments' array",
+        "Reconciler isolation: a context attestation is recorded",
+        "Validity: the grader recomputes that embedded SQLite cannot satisfy the stated shared/multi-instance store requirement (the planted contradiction is real)",
+        "Reconcile caught it: a Tier-2 amendment row cites the SQLite/datastore contradiction, gated/approved (not auto-applied), resolved_by an ADR",
+        "Tech-mandate flow: the resolving ADR's Decision names a client-server datastore (not still SQLite)",
+        "Did not SILENTLY swap or ship the datastore — the change is surfaced via the Tier-2 gate + the resolving ADR"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "underspecified-constraint",
+      "prompt": "The TeamPulse spec spine is already in docs/spec/, the sprint-1 slice in docs/planning/sprints/sprint-01.md, and the approved design contract in docs/design/approved/sprint-01/manifest.md. Run the architect: `03-architect init` then `03-architect sprint 1`. Realize the system architecture under docs/architecture/ (arc42/C4 system.md referencing REQs, MADR ADRs + index, per-feature specs with Verification Contracts covering the manifest DM-IDs), and run the Reconcile pass against docs/spec/architecture-constraints.md, whose Datastore decision is [NEEDS CLARIFICATION] / not yet decided.",
+      "expected_output": "The structured architecture contract (system.md arc42/C4 referencing REQs, MADR ADRs + index, feature specs with Verification Contracts + DM coverage), PLUS the flesh-out component of Reconcile: because architecture-constraints.md leaves the datastore [NEEDS CLARIFICATION] and the stated availability requirement forces a shared client-server store, the skill proposes a concrete datastore via a Tier-2 gated amendment-log.json row resolving the marker (resolved_by an ADR), and system.md / the ADR names the concrete datastore the envelope previously lacked.",
+      "files": ["evals/fixtures/teampulse-underspecified/docs/**"],
+      "assertions": [
+        "The structural contract (system.md arc42/C4 + bounded contexts + REQ refs; MADR ADR registry + index; feature specs with Verification Contracts; REQ + DM coverage)",
+        "amendment-log.json is valid JSON with an 'amendments' array",
+        "Reconciler isolation: a context attestation is recorded",
+        "Validity: the datastore is genuinely underspecified in the envelope ([NEEDS CLARIFICATION], no concrete DB named)",
+        "Flesh-out: a Tier-2 amendment row resolves the underspecified datastore decision, resolved_by an ADR",
+        "Concrete decision: the realization (system.md / an ADR Decision) names a concrete datastore the envelope lacked"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "data-modules",
+      "prompt": "The Beacon spec spine is already in docs/spec/ (Profile: agent-system; the Data: line declares retrieval(source-search) · grounded-writes(report-synthesis) · memory), with the sprint-1 slice in docs/planning/sprints/sprint-01.md. Run the architect: `03-architect init` then `03-architect sprint 1`. Realize the system architecture under docs/architecture/ and run the Reconcile pass against docs/spec/architecture-constraints.md, whose ## Data architecture section states the declared data needs.",
+      "expected_output": "The focused data contract: system.md + ADR registry + >=1 feature spec with a Verification Contract; every declared Data: value realized (DA-T01); an eval-suite VC row whose golden-set dataset ref resolves on disk (DA-T02); a named write-path admission rule (DA-T03); a datastore ADR walking the seven-dimension rubric (DA-T04); retrieval clauses — stage, chunking or no-chunking rationale, dims + reindex trigger, k-consistency (DA-T05); grounding clauses — named ground-truth source, numeric threshold + action, fallback (DA-T06); a Category: memory ADR with the Gate-0 trigger cited, per-kind substrate, lifecycle floor, sharing+authz named together, and — because the spine promises operator profile deletion — the deletion=>derived-reach pairing (DA-T07); volatile-class picks carry resolving Verified-against citations (DA-T08 via S18). docs/spec/capabilities/ is untouched.",
+      "files": ["evals/fixtures/beacon-data/docs/**"],
+      "assertions": [
+        "system.md written; ADR registry + index; valid amendment-log.json; context attestation recorded",
+        "A feature spec references the sprint's REQs and carries a Verification Contract",
+        "Spine integrity: docs/spec/capabilities/** content-identical to the fixture",
+        "DA-T01: every declared Data: value appears in the realization",
+        "DA-T02: an eval-suite VC row whose golden-set dataset ref resolves on disk",
+        "DA-T03: a named write-path admission rule (chain + admit/commit)",
+        "DA-T04: a datastore ADR walks the rubric (alternatives, driver REQ + dimension, symptom Review-Trigger, exit-cost, durable-vs-vendor)",
+        "DA-T05: retrieval content clauses (stage, chunking, dims + reindex, k-consistency)",
+        "DA-T06: grounding content clauses (ground-truth source, threshold + action, fallback; driver-layer conditional)",
+        "DA-T07: memory content clauses (Gate-0, per-kind substrate, lifecycle, sharing+authz, deletion=>derived-reach)",
+        "DA-T08/S18: verify-live ADR citations resolve (post label-normalization)"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "data-nogate",
+      "prompt": "The Beacon spec spine is already in docs/spec/ (Profile: agent-system; the Data: line declares retrieval(handbook-lookup) · memory), with the sprint-1 slice in docs/planning/sprints/sprint-01.md. Run the architect: `03-architect init` then `03-architect sprint 1`. Realize the system architecture under docs/architecture/ and run the Reconcile pass against docs/spec/architecture-constraints.md, whose ## Data architecture section states the project's data facts.",
+      "expected_output": "The need-gate selectivity direction: the ## Data architecture facts deny every trigger (the handbook fits in context — Stage 0; no cross-session learning is wanted — no Gate-0 trigger), so the correct realization DECLINES both declared modules with stated reasons (absence is correct, not a gap): no retrieval or memory substrate commitment appears in the structured loci (Data-model/Components rows), at most one amendment row (a line-narrowing proposal is defensible), while the always-on datastore rubric still yields a DA-T04-compliant ADR and the structural core (system.md, ADR registry, spec + VC, attestation) is intact. grounded-writes is undeclared and not asserted either way.",
+      "files": ["evals/fixtures/beacon-nogate/docs/**"],
+      "assertions": [
+        "system.md written; ADR registry + index; valid amendment-log.json; context attestation recorded",
+        "A feature spec references the sprint's REQs and carries a Verification Contract",
+        "Spine integrity: docs/spec/capabilities/** content-identical to the fixture",
+        "DA-T01: both declared values are addressed (explicit decline counts; silent omission fails)",
+        "DA-T04: the always-on datastore ADR walks the rubric",
+        "Selectivity: no retrieval/memory substrate commitment in Data-model/Components table rows",
+        "False-positive bound: <=1 amendment row",
+        "DA-T08/S18: N/A or resolving citations (no verify-live tech is expected on a declined line)"
+      ]
+    }
+  ]
+}

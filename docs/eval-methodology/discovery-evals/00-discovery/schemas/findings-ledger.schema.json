@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "findings-ledger",
+  "type": "object",
+  "required": ["wave", "findings"],
+  "additionalProperties": false,
+  "properties": {
+    "wave": {"type": "string"},
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "case", "class", "doctrine_anchor", "evidence_quote", "status", "adjudication_note", "reproduction", "attribution", "disposition"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string", "pattern": "^DF-\\d{3}$"},
+          "case": {"type": "string"},
+          "class": {"type": "string", "enum": ["V", "B", "G", "C"]},
+          "doctrine_anchor": {"type": "string"},
+          "evidence_quote": {"type": "string"},
+          "status": {"type": "string", "enum": ["confirmed", "killed"]},
+          "adjudication_note": {"type": "string"},
+          "reproduction": {
+            "type": "object",
+            "required": ["trials", "exhibited"],
+            "additionalProperties": false,
+            "properties": {"trials": {"type": "integer"}, "exhibited": {"type": "integer"}}
+          },
+          "attribution": {"type": "string", "enum": ["doctrine", "capability", "n/a"]},
+          "disposition": {"type": ["string", "null"], "enum": ["doctrine-edit", "calibrated-case-proposal", "defer", null]}
+        }
+      }
+    }
+  }
+}

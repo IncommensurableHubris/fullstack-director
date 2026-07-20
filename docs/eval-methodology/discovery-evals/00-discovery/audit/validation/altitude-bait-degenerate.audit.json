@@ -1,0 +1,35 @@
+{
+  "case": "altitude-bait",
+  "trial": "dryrun",
+  "executor": "sonnet",
+  "candidate_findings": [
+    {
+      "id": "c1",
+      "class": "V",
+      "doctrine_anchor": "shared/spine-boundary.md Rule 2 (Gherkin altitude)",
+      "evidence_quote": "When the user clicks the gear icon, then selects \"Add\", then taps the + button",
+      "severity": "medium",
+      "rationale": "REQ-014's acceptance Gherkin encodes detailed UI-specific steps (gear icon -> \"Add\" -> + button) rather than outcome-level acceptance. Rule 2 states the spine holds only the user-observable result and that detailed UI steps are realization living in skill 03's Verification Contracts. Downstream, skill 05 verifies the build against the spine's outcome-Gherkin; a wrong-altitude scenario baked into the declaration corrupts that review contract and pre-empts skill 03. P1-ui-steps-in-gherkin fired and the quoted text confirms it on read.",
+      "needs_baseline_arm": false
+    },
+    {
+      "id": "c2",
+      "class": "V",
+      "doctrine_anchor": "shared/spine-boundary.md Rule 1 (Declaration vs realization)",
+      "evidence_quote": "CREATE TABLE pantry_items (id SERIAL PRIMARY KEY, name TEXT, qty INT);",
+      "severity": "medium",
+      "rationale": "A SQL DDL schema block sits inside a spine capability file. Rule 1 makes the domain model / data schema a realization owned by skill 03 (drift-gated), not a declaration. Embedding physical schema in docs/spec/** turns a realization into amendment-gated spine truth, so skill 03 must file an amendment to change a table it should own outright. P2-sql-in-spine fired; the verbatim DDL confirms the leak.",
+      "needs_baseline_arm": false
+    },
+    {
+      "id": "c3",
+      "class": "V",
+      "doctrine_anchor": "shared/spine-boundary.md Rule 1 (Declaration vs realization)",
+      "evidence_quote": "The `pantryReducer` Redux slice dispatches `ADD_ITEM` to the `PantryList` component.",
+      "severity": "medium",
+      "rationale": "Internal implementation detail — a named state-management library (Redux), a reducer, an action type, and a component — is written into a spine REQ. Rule 1 classifies component inventory and state wiring as realization (skills 02/03), never spine declaration; a realization references a declaration by ID, it never bakes internal patterns into it. This pre-empts skill 02/03 design decisions and smuggles a named technology into a capability REQ. P3-internal-pattern-in-req fired; the quoted sentence confirms it.",
+      "needs_baseline_arm": false
+    }
+  ],
+  "case_feedback": null
+}

@@ -1,0 +1,117 @@
+{
+  "skill_name": "status",
+  "note": "Input is a seeded PRE-STATUS project state — a git repo (build_fixture.py) whose ROOT commit carries a realistic mid-chain TeamPulse chain: the spine (docs/spec/**), the backlog + sprint slices, design, architecture, src, and a sprint-02 qa-report (verdict SHIP). The arm runs `/status` READ-ONLY: it scans the chain, integrity-checks the spine, counts governance blockers, derives the live state, routes the single next command, and writes ONLY the two generated views (CLAUDE.md § Current State + AGENTS.md). Grade with check_status.py (deterministic file/JSON + git-diff assertions — no LLM judge, no node; status runs no code). status's value is NOT a nice summary (a strong reader writes that too) — it is the DETERMINISTIC derived state: the integrity verdict (PASS, or FAIL naming the offending REQ-ID), the pending/deferred amendment + surviving-marker counts, and the routed next command, emitted machine-readably into CLAUDE.md § Current State — PLUS the read-only-w.r.t.-truth honesty gate (docs/spec/** + every realization byte-identical; only the two views change). The four fixtures are a two-axis F1 (integrity × routing) + the governance arm, differing from the base by exactly one planted mutation, so any behavior delta is attributable to that mutation.",
+  "run_notes": "status is SEQUENTIAL — no subagents (it is a single derive-only read, neither verification nor a parallel panel). So there is NOTHING to relax in the harness <SUBAGENT-STOP> (the 04/06/08 precedent, unlike 03/05/07). with_skill arms: a fresh agent loads .agents/skills/status/SKILL.md and runs `/status` — derive state, integrity-check the spine, write CLAUDE.md § Current State + re-emit AGENTS.md, touch no truth. baseline arms: the same prompt with NO skill (ignore framework files). The read-only proxy is a pure `git diff` vs the root commit — no fixture teardown needed. Workspaces live OUTSIDE .agents/skills/** (e.g. _artifacts/skills-eval/status/iteration-N/<case>/<arm>/outputs/).",
+  "evals": [
+    {
+      "id": 1,
+      "name": "healthy",
+      "prompt": "This is a Fullstack Director project mid-flight. Run `/status`. Scan docs/spec/ and the whole artifact chain (planning, design, architecture, src, quality), integrity-check the spine, count any governance blockers (pending/deferred amendments + surviving [NEEDS CLARIFICATION] markers), and derive where the project stands and the single next command to run. Record the machine-readable derived state in a `## Current State` section of CLAUDE.md (spine-integrity verdict; sprint + phase; amendment counts; open-marker count; the next command) and regenerate the per-project AGENTS.md from the spine Constitution. Do NOT modify the spine or any realization — status is read-only with respect to truth; it writes only those two generated views.",
+      "expected_output": "CLAUDE.md § Current State reports: Spine integrity PASS; Sprint 2 at the release phase (qa verdict SHIP); Amendments 0 pending · 0 deferred; Open [NEEDS CLARIFICATION] 0; Next command `/06-release sprint 2` (sprint-02 is built and qa-SHIP with no release report, so the earliest missing phase is release). AGENTS.md re-emitted as a faithful projection of the spine Constitution. docs/spec/** and every realization byte-identical to the pre-status commit.",
+      "files": [
+        "evals/fixtures/base/**"
+      ],
+      "assertions": [
+        "READ-ONLY w.r.t. truth: docs/spec/** + every realization byte-identical; only CLAUDE.md + AGENTS.md changed",
+        "CLAUDE.md § Current State written (the machine-readable derived state)",
+        "A single next command is emitted",
+        "The spine-integrity verdict is emitted (PASS or FAIL)",
+        "AGENTS.md re-emitted as a faithful projection of the spine Constitution",
+        "Integrity PASS: the mid-chain spine is integral",
+        "Routed correctly: next command `/06-release sprint 2`",
+        "Governance counts emitted and zero: 0 pending · 0 deferred",
+        "Open [NEEDS CLARIFICATION] count emitted and zero"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "corrupted",
+      "prompt": "This is a Fullstack Director project mid-flight. Run `/status`. Scan docs/spec/ and the whole artifact chain, integrity-check the spine (every REQ in the registry must resolve to a leaf that carries its delimited block, `### REQ-NNN:` … `<!-- /REQ-NNN -->`), count governance blockers, and derive where the project stands and the single next command. Record the machine-readable derived state in a `## Current State` section of CLAUDE.md (spine-integrity verdict; sprint + phase; amendment counts; open markers; next command) and regenerate AGENTS.md from the spine Constitution. Do NOT modify the spine or any realization — status is read-only with respect to truth.",
+      "expected_output": "The spine-integrity check FAILS: REQ-021 is in the registry (File capabilities/api.md resolves) but api.md no longer carries a delimited block — its closing `<!-- /REQ-021 -->` delimiter is gone (the heading is present, so a shallow read would miss it). CLAUDE.md § Current State reports Spine integrity FAIL naming REQ-021, and the next command is the repair route (`/00-discovery`), NOT a ship route. status REPORTS the break — it does NOT edit api.md to add the delimiter back (that is /00-discovery's write-path). docs/spec/** byte-identical to the pre-status commit.",
+      "files": [
+        "evals/fixtures/base/**",
+        "evals/fixtures/cases/corrupted/**"
+      ],
+      "assertions": [
+        "READ-ONLY w.r.t. truth: docs/spec/** byte-identical (status reported the break, did not repair it)",
+        "CLAUDE.md § Current State written",
+        "A single next command is emitted",
+        "Integrity FAIL: the deleted REQ-021 delimiter is caught",
+        "The FAIL names the offending REQ-ID (REQ-021)",
+        "Did NOT sail past the corruption to a ship route (next command is not `/06-release`)",
+        "Reported, did NOT repair: the missing REQ-021 delimiter is still missing"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "blocked",
+      "prompt": "This is a Fullstack Director project mid-flight. Run `/status`. Scan docs/spec/ and the whole artifact chain, integrity-check the spine, count governance blockers (pending/deferred amendments in docs/spec/amendment-log.json + surviving [NEEDS CLARIFICATION] markers in docs/spec/**) — these are what 06-release blocks on — and derive where the project stands and the single next command. Record the machine-readable derived state in a `## Current State` section of CLAUDE.md (integrity verdict; sprint + phase; amendment counts; open markers; next command) and regenerate AGENTS.md from the spine Constitution. Do NOT modify the spine or any realization — status is read-only with respect to truth.",
+      "expected_output": "The spine is integral (integrity PASS) but there IS a governance block: a Tier-3 `deferred` amendment (AMD-003) and a surviving `[NEEDS CLARIFICATION]` marker in architecture-constraints.md. Sprint-02 is otherwise ship-ready (qa SHIP, no release), so the naive route would be `/06-release sprint 2` — but 06-release blocks on the deferred amendment + the marker, so status routes to RESOLVE (`/00-discovery reflect`), NOT release, and reports the counts (>=1 deferred, >=1 marker) tied to the release block. docs/spec/** byte-identical.",
+      "files": [
+        "evals/fixtures/base/**",
+        "evals/fixtures/cases/blocked/**"
+      ],
+      "assertions": [
+        "READ-ONLY w.r.t. truth: docs/spec/** + every realization byte-identical",
+        "CLAUDE.md § Current State written",
+        "Integrity PASS: the block is a governance block, not corruption",
+        "Governance surfaced: >=1 pending/deferred amendment counted",
+        "Surviving [NEEDS CLARIFICATION] marker counted (>=1)",
+        "Routed to RESOLVE, not ship: `/00-discovery reflect`, not `/06-release`",
+        "AGENTS.md re-emitted as a faithful projection of the spine Constitution"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "backlog-gap",
+      "prompt": "This is a Fullstack Director project just after discovery. Run `/status`. Scan docs/spec/ and the artifact chain, integrity-check the spine, count governance blockers, and derive where the project stands and the single next command. Record the machine-readable derived state in a `## Current State` section of CLAUDE.md (integrity verdict; sprint + phase; amendment counts; open markers; next command) and regenerate AGENTS.md from the spine Constitution. Do NOT modify the spine — status is read-only with respect to truth.",
+      "expected_output": "The spine exists and is integral (integrity PASS), but there is no backlog (docs/planning/ is absent) — discovery ran, the planner has not. So the next command is `/01-planner` (decompose the spine into the backlog + build-order epics + sprint-01). Zero governance blockers. AGENTS.md re-emitted faithfully. docs/spec/** byte-identical.",
+      "files": [
+        "evals/fixtures/base/**"
+      ],
+      "assertions": [
+        "READ-ONLY w.r.t. truth: docs/spec/** byte-identical; only CLAUDE.md + AGENTS.md changed",
+        "CLAUDE.md § Current State written",
+        "Integrity PASS: the present spine is integral",
+        "Routed correctly: next command `/01-planner`",
+        "AGENTS.md re-emitted as a faithful projection of the spine Constitution",
+        "Governance counts emitted and zero"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "patch-in-flight",
+      "prompt": "A mid-chain TeamPulse project state is seeded in this repo (spine + planning + design + architecture + src + quality; sprint-02 built and qa SHIP with no release). The backlog's ## Patches ledger carries ONE open row — patch-001 (REQ-009, planned) — with its certified record at docs/planning/patches/patch-001.md. Run /status: derive the state read-only, integrity-check the spine, and route the single next command. Write the two generated views (CLAUDE.md § Current State + AGENTS.md).",
+      "expected_output": "Integrity PASS; zero governance blockers; the router goes to the PATCH'S NEXT SEAT — /04-builder (the funnel: the record + existing realizations) — NOT /06-release sprint 2 (the expedite lane preempts sprint routing; one patch in flight finishes first). patch-001 is named in the derived state. Truth stays byte-identical; only CLAUDE.md + AGENTS.md change.",
+      "files": [
+        "evals/fixtures/base/**",
+        "evals/fixtures/cases/patch-in-flight/**"
+      ],
+      "assertions": [
+        "READ-ONLY w.r.t. truth: docs/spec/** + every realization byte-identical; only CLAUDE.md + AGENTS.md changed",
+        "CLAUDE.md § Current State written; a single next command; the integrity verdict emitted; AGENTS.md faithful",
+        "patch-in-flight: integrity PASS (the patch is planning state, not corruption)",
+        "patch-in-flight: routed to the patch's next seat — /04-builder, NOT /06-release sprint 2",
+        "patch-in-flight: the in-flight patch surfaced by id (patch-001 named in the derived state)",
+        "patch-in-flight: governance emitted as zero blockers"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "patch-pressure",
+      "prompt": "A mid-chain TeamPulse project state is seeded in this repo (sprint-02 built and qa SHIP with no release). The backlog's ## Patches ledger shows THREE consecutive done patches (patch-001..003, records under docs/planning/patches/) and no open patch. Run /status: derive the state read-only, integrity-check the spine, surface advisories, and route the single next command. Write the two generated views.",
+      "expected_output": "Integrity PASS; no patch in flight, so the normal route holds — /06-release sprint 2 — AND the A6 patch-pressure advisory appears: 3 consecutive done patches since the last planned sprint means 'this cadence is a sprint — run /01-planner plan-sprint N / consider /08-refactor assess'. Advisory only — it never changes the routed command. Truth byte-identical.",
+      "files": [
+        "evals/fixtures/base/**",
+        "evals/fixtures/cases/patch-pressure/**"
+      ],
+      "assertions": [
+        "READ-ONLY w.r.t. truth: docs/spec/** + every realization byte-identical; only CLAUDE.md + AGENTS.md changed",
+        "CLAUDE.md § Current State written; a single next command; the integrity verdict emitted; AGENTS.md faithful",
+        "patch-pressure: integrity PASS",
+        "patch-pressure: routing UNBLOCKED — the normal route /06-release sprint 2 holds (A6 is advisory, never a block)",
+        "patch-pressure: the A6 advisory surfaced — the patch cadence named as sprint pressure with plan-sprint / 08-refactor suggested"
+      ]
+    }
+  ]
+}

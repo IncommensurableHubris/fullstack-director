@@ -1,0 +1,18 @@
+{
+  "amendments": [
+    {
+      "id": "AMD-1",
+      "req": "REQ-004",
+      "tier": 1,
+      "disposition": "auto-applied",
+      "source_quote": "every newly created share defaults to public visibility: anyone holding the link can open the note without appearing on an invite list"
+    },
+    {
+      "id": "AMD-2",
+      "req": "scope-add: CSV export",
+      "tier": 3,
+      "disposition": "auto-applied",
+      "source_quote": "Add CSV export of a user's notes from the account settings page: one row per note, columns for note name, content, created date, and last-modified date."
+    }
+  ]
+}

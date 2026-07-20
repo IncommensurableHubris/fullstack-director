@@ -1,0 +1,19 @@
+#!/bin/sh
+# Spine integrity gate — verifies docs/spec/ before every commit (WS1 standing gate).
+# Emitted by discovery as an OPT-IN sample. Activate:
+#   cp scripts/hooks/pre-commit.sample .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit
+# (Using a hook manager — husky, pre-commit, lefthook? Wire `python scripts/verify-spine.py` there instead.)
+# A FAIL-severity check (L1-L5) blocks the commit; WARN checks print but never block.
+
+PYTHON="$(command -v python3 || command -v python)"
+if [ -z "$PYTHON" ]; then
+  echo "spine verify skipped: no python on PATH" >&2
+  exit 0
+fi
+
+"$PYTHON" scripts/verify-spine.py || {
+  echo "" >&2
+  echo "spine verify FAILED — docs/spec/ integrity is broken; fix it before committing." >&2
+  echo "(details above; reproduce with: python scripts/verify-spine.py)" >&2
+  exit 1
+}

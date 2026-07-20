@@ -1,0 +1,24 @@
+{
+  "amendments": [
+    {
+      "id": "AMD-001",
+      "req": null,
+      "skill": "03-architect",
+      "tier": 2,
+      "disposition": "approved",
+      "source_quote": "architecture-constraints.md: 'Datastore: SQLite (embedded, single-file; no external database server)' — cannot satisfy 'two or more stateless instances behind a load balancer ... share one datastore'",
+      "supersedes": null,
+      "resolved_by": "ADR-001"
+    },
+    {
+      "id": "AMD-003",
+      "req": null,
+      "skill": "01-planner",
+      "tier": 3,
+      "disposition": "deferred",
+      "source_quote": "assumption-map A1: a reminder/nudge before digest time is not in the v1 capability list; if async completion drops without a meeting's social pressure, a reminder is a NEW capability — a scope change for /00-discovery reflect, not minted by the planner",
+      "supersedes": null,
+      "resolved_by": null
+    }
+  ]
+}

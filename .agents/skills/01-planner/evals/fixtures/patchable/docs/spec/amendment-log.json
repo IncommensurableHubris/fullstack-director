@@ -1,0 +1,14 @@
+{
+  "amendments": [
+    {
+      "id": "AMD-001",
+      "req": null,
+      "skill": "03-architect",
+      "tier": 2,
+      "disposition": "approved",
+      "source_quote": "architecture-constraints.md: 'Datastore: SQLite (embedded, single-file; no external database server)' — cannot satisfy 'two or more stateless instances behind a load balancer ... share one datastore'",
+      "supersedes": null,
+      "resolved_by": "ADR-001"
+    }
+  ]
+}

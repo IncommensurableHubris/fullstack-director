@@ -1,0 +1,24 @@
+{
+  "amendments": [
+    {
+      "id": "AMD-001",
+      "req": "REQ-001",
+      "skill": "00-discovery",
+      "tier": 1,
+      "disposition": "auto-applied",
+      "source_quote": "capabilities/standups.md: 'At most one standup per member per day'",
+      "supersedes": null,
+      "resolved_by": "REQ-001 block edit (resubmission-replaces clarified at intake)"
+    },
+    {
+      "id": "AMD-002",
+      "req": "REQ-009",
+      "skill": "03-architect",
+      "tier": 2,
+      "disposition": "approved",
+      "source_quote": "capabilities/digest.md: 'a dedicated section at the top of the digest'",
+      "supersedes": null,
+      "resolved_by": "ADR-001"
+    }
+  ]
+}

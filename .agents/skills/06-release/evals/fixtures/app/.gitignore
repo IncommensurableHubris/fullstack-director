@@ -1,0 +1,10 @@
+# local env store — secret VALUES live here; docs record variable NAMES only
+.env
+.env.*
+
+# stand-in platform's live deployment target
+_deploy/
+
+# ephemeral workspace
+_artifacts/
+node_modules/

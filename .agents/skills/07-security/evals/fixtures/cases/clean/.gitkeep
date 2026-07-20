@@ -1,0 +1,2 @@
+# The clean-audit case is the UNMODIFIED secure app/ (no src overlay). The fixture builder applies no code
+# overlay for this case, so the panel audits the hardened baseline and should return PASS with ~0 findings.

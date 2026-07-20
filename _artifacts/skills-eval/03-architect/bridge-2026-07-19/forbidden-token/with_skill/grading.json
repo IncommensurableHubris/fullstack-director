@@ -1,0 +1,114 @@
+{
+  "expectations": [
+    {
+      "text": "system.md written at docs/architecture/system.md",
+      "passed": true,
+      "evidence": "17112 chars"
+    },
+    {
+      "text": "system.md carries a C4 diagram (Mermaid C4 canonical, or an ASCII fallback)",
+      "passed": true,
+      "evidence": "mermaid C4=True; ascii C4 fallback=True"
+    },
+    {
+      "text": "system.md has a strategic-DDD bounded-context map",
+      "passed": true,
+      "evidence": "found 'bounded context'"
+    },
+    {
+      "text": "system.md follows the arc42 subset (>=4 sections incl. Crosscutting Concepts + Quality)",
+      "passed": true,
+      "evidence": "arc42 sections found=['constraints', 'context', 'solution strategy', 'building block', 'crosscutting', 'quality', 'risk']"
+    },
+    {
+      "text": "system.md references the spine by REQ-ID (traceability, not copied requirement prose)",
+      "passed": true,
+      "evidence": "REQ refs in system.md=['REQ-001', 'REQ-002', 'REQ-003', 'REQ-004', 'REQ-005', 'REQ-006', 'REQ-007', 'REQ-008', 'REQ-009', 'REQ-010']"
+    },
+    {
+      "text": "ADR registry: adr/README.md index + >=1 MADR ADR with a checkable Rule (Binds/Prevents/Rule)",
+      "passed": true,
+      "evidence": "index=yes; adr files=['ADR-001.md', 'ADR-002.md', 'ADR-003.md', 'ADR-004.md', 'ADR-005.md', 'ADR-006.md']; MADR fields=True; Rule+Binds/Prevents=True"
+    },
+    {
+      "text": "ADR IDs are contiguous from ADR-001 with no gaps/dupes (max+1 allocation)",
+      "passed": true,
+      "evidence": "ADR ids=[1, 2, 3, 4, 5, 6]"
+    },
+    {
+      "text": "A feature spec references the sprint's REQs and carries a Verification Contract (method + pass-criterion)",
+      "passed": true,
+      "evidence": "specs=['auth.md', 'digest.md', 'standups.md', 'team-setup.md']; sprint-REQ refs=['REQ-001', 'REQ-004', 'REQ-005', 'REQ-006', 'REQ-007', 'REQ-008']; VC with method=True"
+    },
+    {
+      "text": "REQ coverage: every in-scope sprint REQ is covered by >=1 feature spec",
+      "passed": true,
+      "evidence": "sprint REQs=['REQ-001', 'REQ-004', 'REQ-005', 'REQ-006', 'REQ-007', 'REQ-008']; uncovered by specs=none"
+    },
+    {
+      "text": "DM coverage (forward): every required 02-manifest DM-ID is covered by a feature spec",
+      "passed": true,
+      "evidence": "required DM-IDs=['DM-001', 'DM-002', 'DM-003', 'DM-004', 'DM-005', 'DM-006', 'DM-007', 'DM-008']; uncovered=none"
+    },
+    {
+      "text": "amendment-log.json is valid JSON with an 'amendments' array",
+      "passed": true,
+      "evidence": "valid"
+    },
+    {
+      "text": "Reconciler isolation: a context attestation is recorded (fresh-spawner proxy; transcript check is manual)",
+      "passed": true,
+      "evidence": "attestation marker found"
+    },
+    {
+      "text": "system.md \u00a710: every quality scenario names an executable fitness function (or deferred:<why>) \u2014 no prose-only quality claims (D1)",
+      "passed": false,
+      "evidence": "Q-rows=6; prose-only(no fitness fn)=1; e.g. | Q-06 | Reliability (API\u2192Worker boundary) | When the Worker is slow or unreacha"
+    },
+    {
+      "text": "system.md \u00a7 Test Strategy (core): a named test shape (pyramid/trophy/honeycomb) + a flake-quarantine policy (ticket + owner + fix-or-remove SLA) (D2)",
+      "passed": true,
+      "evidence": "section=True; named shape=True; flake ticket+owner+SLA=True"
+    },
+    {
+      "text": "A feature spec carries an Observability row \u2014 what it logs/emits + what \"healthy\" means (D3)",
+      "passed": true,
+      "evidence": "Observability section=True; 'healthy' notion=True; table row=True"
+    },
+    {
+      "text": "Migration contract (D4, conditional): N/A \u2014 no destructive data-model change in the feature specs",
+      "passed": true,
+      "evidence": "no destructive DDL \u2192 migration row not required (additive/initial schema)"
+    },
+    {
+      "text": "system.md \u00a7 Threats considered (D6): >=1 boundary-derived threat, each with a mitigation (a constraint / ADR / accepted-risk) \u2014 the Four Questions over the C4 trust boundaries",
+      "passed": true,
+      "evidence": "section=True; threat row/bullet=True; mitigation notion=True"
+    },
+    {
+      "text": "Validity: the stated datastore (embedded SQLite) cannot satisfy the stated shared/multi-instance store requirement (the planted contradiction is real \u2014 in the constraint or the amendment source_quote)",
+      "passed": true,
+      "evidence": "datastore='SQLite (embedded, single-file; no external databas'; embedded token (file|source_quote)=['sqlite']; shared/multi-instance=True"
+    },
+    {
+      "text": "Reconcile caught it: a Tier-2 amendment row cites the SQLite/datastore contradiction, gated (not auto-applied), resolved_by an ADR \u2014 surfaced through the amendment channel, not silent prose",
+      "passed": true,
+      "evidence": "tier-2 rows=3; citing-datastore=3; gated+ADR=3; dispositions=['approved', 'approved', 'approved']"
+    },
+    {
+      "text": "Tech-mandate flow: the resolving ADR's Decision names a client-server datastore (not still SQLite)",
+      "passed": false,
+      "evidence": "resolving ADR decisions=3; names a client-server DB=False"
+    },
+    {
+      "text": "Both, or neither: the stated Datastore line itself was amended to name the client-server replacement (not just the amendment row + resolving ADR)",
+      "passed": false,
+      "evidence": "post-run Datastore line='SQLite (embedded, single-file; no external database server).'"
+    },
+    {
+      "text": "Verify-live ADR citation (S18, conditional): N/A \u2014 no verify-live tech declared",
+      "passed": true,
+      "evidence": "no ## Verify-live block in architecture-constraints.md"
+    }
+  ]
+}

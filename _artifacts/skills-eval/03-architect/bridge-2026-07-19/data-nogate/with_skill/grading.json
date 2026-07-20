@@ -1,0 +1,59 @@
+{
+  "expectations": [
+    {
+      "text": "system.md written at docs/architecture/system.md",
+      "passed": true,
+      "evidence": "19994 chars"
+    },
+    {
+      "text": "ADR registry present (adr/README.md index + >=1 ADR)",
+      "passed": true,
+      "evidence": "index=yes; adrs=['ADR-001.md', 'ADR-002.md', 'ADR-003.md', 'ADR-004.md', 'ADR-005.md', 'ADR-006.md', 'ADR-007.md', 'ADR-008.md']"
+    },
+    {
+      "text": "amendment-log.json is valid JSON with an 'amendments' array",
+      "passed": true,
+      "evidence": "valid"
+    },
+    {
+      "text": "Reconciler isolation: a context attestation is recorded (fresh-spawner proxy; transcript check is manual)",
+      "passed": true,
+      "evidence": "attestation marker found"
+    },
+    {
+      "text": "A feature spec references the sprint's REQs and carries a Verification Contract",
+      "passed": true,
+      "evidence": "specs=['grounded-synthesis.md', 'research-fan-out.md']; sprint-REQ refs=['REQ-001', 'REQ-002', 'REQ-003']; VC=True"
+    },
+    {
+      "text": "Spine integrity: docs/spec/capabilities/** content-identical to the fixture (EOL-normalized)",
+      "passed": true,
+      "evidence": "fixture files=1; changed=none; extra=none"
+    },
+    {
+      "text": "DA-T01 pairing: every declared Data: value appears in the realization (realized, or explicitly declined \u2014 silent omission fails either way)",
+      "passed": true,
+      "evidence": "declared=['retrieval', 'memory']; unaddressed=none"
+    },
+    {
+      "text": "DA-T04: a datastore ADR walks the \u00a71 rubric (>=2 alternatives \u00b7 driver REQ + dimension map \u00b7 symptom Review-Trigger \u00b7 exit-cost \u00b7 durable-vs-vendor split)",
+      "passed": false,
+      "evidence": "ADR-008.md: {'alts>=2': True, 'driver-REQ': False, 'dimension-map': True, 'review-trigger(symptom)': True, 'exit-cost': True, 'durable-vs-vendor': True}"
+    },
+    {
+      "text": "Need-gate selectivity: no retrieval/memory substrate commitment in the structured loci (Data-model/Components table rows) \u2014 the declined modules stay declined",
+      "passed": true,
+      "evidence": "retrieval-commitment rows=none; memory-commitment rows=none"
+    },
+    {
+      "text": "False-positive bound: a declined Data: line yields <=1 amendment row (one line-narrowing proposal is defensible; invented findings are not)",
+      "passed": true,
+      "evidence": "0 amendment row(s)"
+    },
+    {
+      "text": "Verify-live ADR citation (S18, conditional): N/A \u2014 no verify-live tech declared",
+      "passed": true,
+      "evidence": "no ## Verify-live block in architecture-constraints.md"
+    }
+  ]
+}

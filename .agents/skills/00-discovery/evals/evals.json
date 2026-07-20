@@ -1,0 +1,142 @@
+{
+  "skill_name": "00-discovery",
+  "evals": [
+    {
+      "id": 1,
+      "name": "rich-spec",
+      "prompt": "I've finished a PRD for a product called TeamPulse — it's in PRD.md. Run discovery and produce the project spec spine from it.",
+      "expected_output": "A complete spine under docs/spec/ (Constitution + REQ registry + capabilities grouped by domain with outcome-level Gherkin), with nearly all REQs marked `stated` and carrying verbatim source quotes from the PRD, a charter with the JTBD, an emitted project AGENTS.md, and an initialized amendment-log — with no invented scope and CHALLENGE near-silent (the PRD is near-truth).",
+      "files": ["evals/fixtures/rich-spec/PRD.md"],
+      "assertions": [
+        "docs/spec/specification.md exists and contains a Constitution section (3-7 items) and a REQ registry markdown table",
+        "At least two files exist under docs/spec/capabilities/, each containing one or more delimited REQ blocks matching '### REQ-NNN:' ... '<!-- /REQ-NNN -->'",
+        "Registry-leaf integrity: every REQ-ID in the registry table resolves to a delimited block in the file named in its row",
+        "At least 80% of REQ rows have Status 'stated' and a matching '<!-- source: \"...\" -->' line whose quote is not 'inferred'",
+        "No invented scope: every REQ's source quote is text that actually appears in evals/fixtures/rich-spec/PRD.md",
+        "AGENTS.md exists at the project root, contains a GENERATED / do-not-edit header, and lists the Constitution items",
+        "docs/discovery/charter.md exists and contains a JTBD line of the form 'When ... I want ... so I can ...'",
+        "docs/spec/amendment-log.json is valid JSON with an 'amendments' array",
+        "CHALLENGE is near-silent: docs/discovery/assumption-map.md surfaces zero or very few Unknown+Important assumptions (the PRD is well-evidenced)",
+        "scripts/verify-spine.py is emitted at the project root and exits 0 against the fresh spine"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "thin-spec",
+      "prompt": "Here's a rough brief for an app called QuickNotes (brief.md). Set up the project spec spine from it.",
+      "expected_output": "A spine is produced, but the gaps in the thin brief are made explicit: a capability the brief implies but never states (e.g. accounts/auth, or who may access a shared note) is captured as a `derived` REQ (source: inferred) and/or flagged with a [NEEDS CLARIFICATION] marker. Integrity holds.",
+      "files": ["evals/fixtures/thin-spec/brief.md"],
+      "assertions": [
+        "A spine is produced: docs/spec/specification.md with a REQ registry plus at least one docs/spec/capabilities/*.md file",
+        "At least one REQ is marked 'derived' in the registry and carries a '<!-- source: inferred -->' line (a capability the brief implies but never states)",
+        "At least one '[NEEDS CLARIFICATION]' marker appears in the spine (an unresolved gap, e.g. who may access a shared note, or what 'sync quickly' means)",
+        "Registry-leaf integrity holds for every REQ row",
+        "scripts/verify-spine.py is emitted at the project root and exits 0 against the fresh spine (markers WARN, never FAIL)"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "undefended-bet",
+      "prompt": "Intake this spec for MealMate (spec.md) and produce the spec spine.",
+      "expected_output": "A spine is produced, and the planted Unknown+Important assumption — that home cooks will switch from free tools and pay $15/month — is surfaced in the assumption map as an undefended bet, not silently baked in as established fact.",
+      "files": ["evals/fixtures/undefended-bet/spec.md"],
+      "assertions": [
+        "A spine is produced: docs/spec/specification.md with a REQ registry and at least one capabilities file",
+        "docs/discovery/assumption-map.md exists and surfaces the willingness-to-pay bet (references paying, the $15/month price, or switching from free tools)",
+        "The pricing/adoption assumption is classified as Unknown+Important (an undefended bet), not asserted as established fact",
+        "Registry-leaf integrity holds",
+        "scripts/verify-spine.py is emitted at the project root and exits 0 against the fresh spine"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "no-doc",
+      "prompt": "I have an idea: a tool that helps freelance designers see which client invoices are overdue and automatically nudge the client. No spec yet — let's start discovery.",
+      "expected_output": "With no document, discovery elicits the spine conversationally (interview to spine): a charter JTBD, a Constitution, and at least one capabilities file with outcome-level REQs. REQs trace to the interview/itch (source: 'interview: ...') or are marked derived where inferred — none claim a document quote. Integrity holds.",
+      "files": [],
+      "assertions": [
+        "A spine is produced from the itch alone: docs/spec/specification.md with a REQ registry and at least one docs/spec/capabilities/*.md file",
+        "No REQ claims a document source quote; sourced REQs use 'source: \"interview: ...\"' and inferred ones use 'source: inferred'",
+        "docs/discovery/charter.md exists and contains a JTBD line capturing the overdue-invoice nudging job",
+        "Registry-leaf integrity holds for every REQ row",
+        "scripts/verify-spine.py is emitted at the project root and exits 0 against the fresh spine"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "security-flavored",
+      "prompt": "Here's a brief for SnippetShare (brief.md) — a link-shared code-snippet service with explicit access rules. Run discovery and produce the project spec spine from it.",
+      "expected_output": "A spine where each REQ statement line is EARS-form, and the brief's explicit refusal rules (a private snippet must never be served to a non-owner; no script execution in a rendered snippet; oversize bodies rejected) are captured as at least one **must-not REQ** in the Unwanted-behavior EARS pattern (`IF <undesired condition>, THEN the <system> SHALL <refuse/deny/reject>`), not as prose or a silent omission. Integrity holds; the verify script is emitted.",
+      "files": ["evals/fixtures/security-flavored/brief.md"],
+      "assertions": [
+        "A spine is produced: docs/spec/specification.md with a REQ registry and at least one docs/spec/capabilities/*.md file",
+        "Every REQ statement line matches one of the five EARS patterns (Ubiquitous / Event-driven / State-driven / Optional-feature / Unwanted-behavior)",
+        "At least one REQ is a must-not: an Unwanted-behavior 'IF ..., THEN the ... SHALL ...' statement capturing one of the brief's explicit refusal rules",
+        "No inferred REQ transcribes a quantitative claim (e.g. the 1 MB limit) without a source quote or a [NEEDS CLARIFICATION] marker",
+        "Registry-leaf integrity holds for every REQ row",
+        "scripts/verify-spine.py is emitted at the project root and exits 0 against the fresh spine"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "explore",
+      "prompt": "/00-discovery explore — I keep losing track of which client invoices are overdue and it's stressing me out. No spec, no formed idea yet — help me think through the problem before I commit to building anything.",
+      "expected_output": "EXPLORE mode: a docs/discovery/exploration.md holding >=3 distinct problem framings (each origin-tagged user|model, each Torres-tested), an appetite (a size), and a decision (a pick/ranking, or an explicit don't-build) — and ZERO files under docs/spec/ (the hard, spine-locked gate). No REQs, no Constitution, no spine.",
+      "files": [],
+      "assertions": [
+        "docs/discovery/exploration.md exists with a ## Framings section containing >=3 framings, each carrying an 'origin: user|model' tag",
+        "exploration.md has a ## Appetite section (a size, not an estimate) and a ## Decision section (a pick/ranking or an explicit don't-build)",
+        "Hard invariant: NO files are written under docs/spec/ (EXPLORE never writes the spine)"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "explore-refusal",
+      "prompt": "/00-discovery explore — just spec my idea already: an app that reminds freelancers about overdue invoices. Skip the exploration and set up the spine.",
+      "expected_output": "Despite the pressure to converge immediately, the divergent round still runs: >=3 framings in exploration.md (or an explicit user-override recorded), and STILL no docs/spec/ files. The anti-sycophancy assertion — the skill does not collapse onto idea #1 and start writing a spine on demand.",
+      "files": [],
+      "assertions": [
+        "The divergent round still ran: exploration.md has >=3 framings despite the converge-now prompt",
+        "Hard invariant holds under pressure: NO files under docs/spec/",
+        "exploration.md has a ## Appetite and a ## Decision section"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "adopt",
+      "prompt": "/00-discovery adopt — this repo (notekeep, a small passphrase-locked notes CLI) has no spec. Reverse-engineer a spec spine from the existing code.",
+      "expected_output": "ADOPT mode: the existing repo is the project, so the spine is written alongside the code. Every REQ is authored from code evidence — an EARS statement line + source: code:<path:line> (or docs:<path>), derived by construction until confirmed — and every code:<path> RESOLVES to a real file (anti-hallucination). The planted dead feature (PDF export in notekeep/export_pdf.py — never wired into the CLI, never documented) is surfaced as an out-of-scope / removal candidate, not silently kept as a REQ. The auth invariant (every note operation requires an unlocked session) is captured as a must-not REQ or a Constitution item. Registry-leaf integrity holds; scripts/verify-spine.py is emitted and exits 0.",
+      "files": [
+        "evals/fixtures/adopt-mini/README.md",
+        "evals/fixtures/adopt-mini/notekeep/__init__.py",
+        "evals/fixtures/adopt-mini/notekeep/auth.py",
+        "evals/fixtures/adopt-mini/notekeep/cli.py",
+        "evals/fixtures/adopt-mini/notekeep/store.py",
+        "evals/fixtures/adopt-mini/notekeep/export_pdf.py",
+        "evals/fixtures/adopt-mini/tests/test_auth.py"
+      ],
+      "assertions": [
+        "Every REQ statement line is EARS-form and cites adopt evidence (source: code:<path> or docs:<path>), all derived/adopt-confirmed",
+        "Anti-hallucination: every adopt code:<path> resolves to a real file in the project",
+        "The planted zombie feature (PDF export) is surfaced out-of-scope / for removal, never kept as an active REQ",
+        "The auth/session invariant is captured as a must-not (IF/THEN) REQ or a Constitution item",
+        "Registry-leaf integrity holds; scripts/verify-spine.py is emitted and exits 0 on the fresh spine"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "agent-brief",
+      "prompt": "Here's a brief for Relay, a support-triage AI agent (brief.md). Run discovery and produce the project spec spine from it.",
+      "expected_output": "An agent-system spine: specification.md carries `- **Profile:** agent-system`, and the spine gains docs/spec/agent-contract.md with all six core sections (autonomy tier; risk class; tool-permission matrix with a HITL column and >=1 concrete tool row such as the Stripe refund at HITL: yes; escalation/HITL policy; cost envelope with a token/spend budget + a retry/step cap; memory policy). At least one must-not REQ (IF/THEN Unwanted-behavior) captures a high-risk-tool refusal (no refund without human approval; no ungrounded reply). Latency targets (first-response under a minute) live in architecture-constraints, not the cost envelope (the S8 boundary). Registry-leaf integrity holds; verify-spine emits and exits 0. Baseline produces generic requirements with none of the agent-contract structure.",
+      "files": ["evals/fixtures/agent-brief/brief.md"],
+      "assertions": [
+        "specification.md declares `- **Profile:** agent-system`",
+        "docs/spec/agent-contract.md exists with all six core section heads (autonomy tier, risk class, tool-permission matrix, escalation/HITL, cost envelope, memory policy)",
+        "The tool-permission matrix has a `| Tool | Scopes | Risk | HITL |` header and at least one concrete tool row (e.g. the Stripe refund with HITL: yes)",
+        "The cost envelope declares a token/spend budget and a retry/step cap (the runaway-loop defense); latency targets live in architecture-constraints (the S8 boundary)",
+        "At least one must-not REQ in the IF/THEN Unwanted-behavior form captures a high-risk-tool refusal (no refund without approval, or no ungrounded reply)",
+        "Every REQ statement line is EARS-form; registry-leaf integrity holds; scripts/verify-spine.py is emitted and exits 0 on the fresh spine"
+      ]
+    }
+  ]
+}

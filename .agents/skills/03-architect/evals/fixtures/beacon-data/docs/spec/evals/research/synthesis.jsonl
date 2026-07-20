@@ -1,0 +1,2 @@
+{"q": "compare X across sources", "expect_grounded": true}
+{"q": "uncited claim trap", "expect_grounded": false, "must_not": "include an uncited claim"}

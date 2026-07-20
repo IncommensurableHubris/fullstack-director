@@ -1,0 +1,61 @@
+# ── Generated artifacts (screenshots, GIFs, recordings) ──
+_artifacts/
+# …but committed integration-eval fixtures live under _artifacts/ paths and ARE deterministic-grader inputs (the
+# ignore above is for ephemeral run outputs). Re-include the fixture dir first, then its contents (git can't
+# re-include a file whose parent dir is excluded without re-including the dir):
+!docs/eval-methodology/integration/fixtures/**/_artifacts/
+!docs/eval-methodology/integration/fixtures/**/_artifacts/**
+
+# ── Stray defaults (safety net for tools that default to CWD) ──
+page-*.png
+page-*.jpeg
+recording-*.gif
+
+# ── Environment and secrets ──
+.env
+.env.*
+
+# ── OS files ──
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ── Claude Code local config ──
+.claude/settings.local.json
+
+# ── The master repo commits NO Claude bridge (decision 2026-07-12: skills here auto-trigger and pollute
+#    framework-dev sessions; .claude/skills is a CONSUMER-only emission — docs/harness-support.md). A local
+#    `python tools/vendor.py sync --self` output stays untracked. ──
+.claude/skills/
+.director/
+
+# ── Skill eval workspaces (ephemeral run artifacts) ──
+.claude/skills/*-workspace/
+
+# ── Editor / IDE ──
+.vscode/
+.idea/
+*.swp
+*~
+
+# ── Common build outputs (expanded by /ship init) ──
+node_modules/
+__pycache__/
+*.pyc
+dist/
+build/
+.next/
+.nuxt/
+venv/
+.venv/
+
+# ── Logs ──
+*.log
+npm-debug.log*
+
+# ── Git worktrees ──
+.worktrees/
+.claude/worktrees/
+
+# ── Playwright MCP runtime state ──
+.playwright-mcp/

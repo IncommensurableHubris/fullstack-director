@@ -1,0 +1,18 @@
+{
+  "amendments": [
+    {
+      "id": "AMD-1",
+      "req": "REQ-004",
+      "tier": 2,
+      "disposition": "approved",
+      "source_quote": "Effective this release, every newly created share defaults to public visibility, a deliberate reversal of the v1 privacy-by-default posture for sharing (was: default every new share to private visibility)."
+    },
+    {
+      "id": "AMD-2",
+      "req": "scope-add: CSV export",
+      "tier": 3,
+      "disposition": "deferred",
+      "source_quote": "Add CSV export of a user's notes from the account settings page: one row per note, columns for note name, content, created date, and last-modified date."
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "case": "altitude-bait",
+  "trial": "dryrun",
+  "executor": "sonnet",
+  "candidate_findings": [],
+  "case_feedback": null
+}

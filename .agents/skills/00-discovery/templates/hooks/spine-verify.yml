@@ -1,0 +1,19 @@
+# Spine integrity gate — CI twin of the pre-commit sample (WS1 standing gate).
+# Emitted by discovery as an OPT-IN sample. Activate:
+#   cp scripts/hooks/spine-verify.yml .github/workflows/spine-verify.yml
+# The script is stdlib-only (Python 3.8+); exit 1 on any FAIL-severity check fails the job.
+
+name: spine-verify
+
+on: [push, pull_request]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - name: Verify the spec spine
+        run: python scripts/verify-spine.py

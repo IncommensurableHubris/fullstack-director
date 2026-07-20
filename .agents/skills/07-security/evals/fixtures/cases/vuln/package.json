@@ -1,0 +1,17 @@
+{
+  "name": "teampulse",
+  "version": "2.0.0",
+  "private": true,
+  "description": "TeamPulse — async standup digest, served over an authenticated HTTP API",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "teampulse-slackfmt": "^2.1.0"
+  }
+}

@@ -1,0 +1,34 @@
+{
+  "amendments": [
+    {
+      "id": "AMD-001",
+      "req": "REQ-001",
+      "skill": "00-discovery",
+      "tier": 1,
+      "disposition": "auto-applied",
+      "source_quote": "capabilities/standups.md: 'At most one standup per member per day'",
+      "supersedes": null,
+      "resolved_by": "REQ-001 block edit (resubmission-replaces clarified at intake)"
+    },
+    {
+      "id": "AMD-002",
+      "req": "REQ-020",
+      "skill": "03-architect",
+      "tier": 2,
+      "disposition": "approved",
+      "source_quote": "architecture-constraints.md: 'email magic-link sessions only'",
+      "supersedes": null,
+      "resolved_by": "ADR-002"
+    },
+    {
+      "id": "AMD-003",
+      "req": "REQ-021",
+      "skill": "05-reviewer",
+      "tier": 3,
+      "disposition": "deferred",
+      "source_quote": "review: 'should a needs-help post also DM the member's manager? scope question — out of this slice'",
+      "supersedes": null,
+      "resolved_by": null
+    }
+  ]
+}

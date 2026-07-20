@@ -1,0 +1,79 @@
+{
+  "skill_name": "01-planner",
+  "note": "Input is a SPINE (not a doc). Each case's fixture is a full spine tree under evals/fixtures/<case>/docs/. At eval time the fixture's docs/ is seeded into the arm's outputs/ (the project root); the skill must ADD docs/planning/ without touching docs/spec/. Grade with check_backlog.py (deterministic, structural — no LLM judge). The lift is the structured contract the next skills consume, so the discriminating assertions are structural.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "teampulse",
+      "prompt": "The TeamPulse spec spine is already in docs/spec/ (and discovery notes in docs/discovery/). Run the planner: decompose it into a build plan — build-order epics, the backlog ledger, and the sprint-1 slice.",
+      "expected_output": "A build plan under docs/planning/: a backlog.md ledger mapping every spine REQ (REQ-001..010) exactly once to a build-order epic, a sprint, and an execution status (planned/in-progress/done); build-order epics that put the Team & Access foundation (auth REQ-007 + team REQ-004) before the consuming Digest features (REQ-008/009/010); and a sprint-01.md walking skeleton that threads sign-in -> submit standup -> generate digest end-to-end (spanning the team, standups, and digest domains), carrying a frozen Gherkin snapshot of each REQ and a 'Done When'. The spine (docs/spec/) is left untouched — execution status never leaks into the spine registry. Sprint 1 is biased to de-risk the assumption-map's A1 (async completion) by getting the submit->digest->read loop live first.",
+      "files": ["evals/fixtures/teampulse/docs/**"],
+      "assertions": [
+        "docs/planning/backlog.md exists and contains a ledger table mapping REQ -> epic -> sprint -> status",
+        "Every REQ in the spine registry (REQ-001..REQ-010) appears in the ledger exactly once — none dropped, none duplicated, none invented",
+        "Ledger Status uses execution vocabulary (planned/in-progress/done), never the spine's fidelity vocabulary (stated/derived)",
+        "Build-order epics: the epic containing the access foundation (REQ-007 auth / REQ-004 team) precedes the epic containing the consuming digest features (REQ-010 / REQ-009)",
+        "docs/planning/sprints/sprint-01.md exists (zero-padded), references REQ-IDs, carries a frozen Gherkin snapshot per REQ, and has a 'Done When' section",
+        "Sprint 1 is a thin vertical slice: it includes the auth foundation (REQ-007) and threads REQ-001 (submit) + REQ-008 (generate digest), spanning >= 2 capability domains",
+        "Two-status separation: the seeded spine registry (docs/spec/specification.md) is left untouched — its Status column still reads only stated/derived"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "foundation-chain",
+      "prompt": "The PennyPilot spec spine is in docs/spec/ and discovery notes in docs/discovery/. Run the planner and produce the build plan: build-order epics, the backlog ledger, and the first sprint.",
+      "expected_output": "A build plan that reorders the domain-organized spine into build order even though the foundation REQ (REQ-005 connect-a-bank-account) sorts LAST in the registry: the ledger and epics put Accounts (REQ-005) first, Transactions (REQ-003/004) next, Insights (REQ-001/002) last. Sprint-01.md is the walking skeleton connect -> categorize -> see-summary (REQ-005 + REQ-003 + REQ-001), biased to de-risk assumption A1 (will users connect a real bank account). Every REQ appears once in the ledger with an execution status; the spine is untouched.",
+      "files": ["evals/fixtures/foundation-chain/docs/**"],
+      "assertions": [
+        "docs/planning/backlog.md exists and maps every spine REQ (REQ-001..REQ-005) exactly once to epic -> sprint -> execution status",
+        "Build-order reordering: the foundation REQ-005 (connect a bank account) — which sorts LAST in the registry — is placed in an earlier epic than the consuming REQ-001 (monthly summary)",
+        "docs/planning/sprints/sprint-01.md exists (zero-padded) with REQ-IDs, a frozen Gherkin snapshot per REQ, and a 'Done When'",
+        "Sprint 1 includes the foundation REQ-005 and threads it through to REQ-003 (categorize) + REQ-001 (summary), spanning >= 2 domains",
+        "Ledger Status is execution-only; the seeded spine registry is left untouched (still only stated/derived)"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "patch-small",
+      "prompt": "/01-planner patch \"Standups submitted exactly at the configured digest time are dropped from that day's digest — boundary bug in src/digest.py's build_digest; a standup submitted at the lock instant should be included (REQ-008 behavior).\" The TeamPulse project is mid-life: spine in docs/spec/, backlog + shipped sprint-01 in docs/planning/, code in src/.",
+      "expected_output": "The planner certifies patch-class (all five checks P1-P5 pass with evidence), writes docs/planning/patches/patch-001.md (frontmatter: patch id, owning reqs [REQ-008], size_budget; NO status field), adds exactly one `| patch-001 | ... | planned |` row to the backlog's ## Patches ledger, and dispatches to /04-builder. No sprint/design/architecture artifacts; docs/spec/ byte-identical.",
+      "files": ["evals/fixtures/patchable/**"],
+      "assertions": [
+        "docs/planning/patches/patch-001.md exists (max+1 zero-padded numbering; exactly one record)",
+        "Record frontmatter carries patch id + owning reqs + size_budget (files/loc) and NO status field (the ledger is the sole status origin)",
+        "Every owning REQ resolves in the spine registry (P1)",
+        "All five gate checks P1-P5 are evidenced on the record",
+        "The backlog gains exactly one ## Patches row for patch-001 with status 'planned'",
+        "The record's dispatch names /04-builder",
+        "docs/spec/** is byte-identical to the seed (P2); no sprint/design/architecture artifacts are created"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "patch-hidden-scope",
+      "prompt": "/01-planner patch \"Fix the missing manager notification: when a blocker is flagged needs-help, the member's manager never gets notified. Managers need to hear about it the moment the flag lands.\" The TeamPulse project is mid-life: spine in docs/spec/, backlog + shipped sprint-01 in docs/planning/, code in src/.",
+      "expected_output": "The planner REFUSES to certify: no REQ owns notifications (the spine has no notification capability at all) — P1 fails, a Tier-3 scope signal. No patch record is written, no ledger row added, no REQ minted; the refusal routes the user to /00-discovery reflect. The spine stays byte-identical.",
+      "files": ["evals/fixtures/patchable/**"],
+      "assertions": [
+        "No patch is certified: docs/planning/patches/ is absent or empty",
+        "No ## Patches ledger row is added",
+        "The escalation is routed to /00-discovery reflect (Tier-3 scope signal) and recorded visibly (transcript or artifact)",
+        "docs/spec/** is byte-identical to the seed — no REQ minted",
+        "No sprint/design/architecture artifacts are created"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "patch-ceremony-decline",
+      "prompt": "/01-planner patch \"The digest header shows the wrong date for teams in timezones west of UTC — header_date in src/digest.py ignores the team's timezone offset (REQ-005 configures it; the digest should use it). Plan whatever process is needed to get this fixed properly.\" The TeamPulse project is mid-life: spine in docs/spec/, backlog + shipped sprint-01 in docs/planning/, code in src/.",
+      "expected_output": "Despite the 'plan whatever process is needed' invitation, the planner does NOT spin up sprint/design/architecture ceremony: it certifies the patch (patch-001.md + one ledger row, status planned) and dispatches to /04-builder. Ceremony scales down by change class; verification and the release gate never do.",
+      "files": ["evals/fixtures/patchable/**"],
+      "assertions": [
+        "docs/planning/patches/patch-001.md exists (exactly one record)",
+        "The backlog gains exactly one ## Patches row for patch-001 with status 'planned'",
+        "Ceremony declined: no new sprint files, no docs/design/, no docs/architecture/ artifacts",
+        "docs/spec/** is byte-identical to the seed"
+      ]
+    }
+  ]
+}
