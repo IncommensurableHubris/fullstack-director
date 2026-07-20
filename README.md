@@ -29,19 +29,15 @@ fail under pressure; its confirmed findings are fixed and the full records are p
 [`docs/eval-methodology/`](docs/eval-methodology/). Capabilities include the patch/expedite lane with standing
 spine gates, EXPLORE and brownfield-ADOPT entry paths, the agentic Project Profile (agent contracts · eval-suite
 acceptance · an agentic security panel), live-source verification for too-new tech, and the design-time
-data-architecture discipline (datastore selection · retrieval · grounding · memory).
+data-architecture discipline (datastore selection · retrieval · grounding · memory). A few conditional extensions
+are deliberately built only on first need — recorded, with their triggers, in
+[`shared/artifact-map.md` § Deferred activities](shared/artifact-map.md); the framework is complete without them.
 
 **Packaging:** [`tools/vendor.py`](tools/vendor.py) deploys the framework into a consumer project in one command
 for the three verified harnesses (Claude Code · Codex CLI · Gemini CLI — see
 [`docs/harness-support.md`](docs/harness-support.md)), ships the `fsd-*` subagent definitions, and
 [`shared/feedback-loop.md`](shared/feedback-loop.md) closes the dogfood→distill→upstream loop. This repo itself
 deliberately commits no `.claude/skills` bridge — the SDLC chain runs in *consumer* repos only.
-
-**Deliberately not built — documented non-commitments, no roadmap implied.** A small set of items is recorded
-with the condition that would justify building it and is built **only on first need** — e.g. the live
-`agent-chain` and `verify-live` integration runs (their deterministic graders exist; the live runs await a real
-project that exercises them) and further adversarial waves. The framework is complete without them; the records
-name the triggers.
 
 ## Layout (target)
 
