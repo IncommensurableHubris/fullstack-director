@@ -122,6 +122,7 @@ deliberately commits no `.claude/skills` bridge — the SDLC chain runs in *cons
 |------|------|
 | [`docs/charter.md`](docs/charter.md) | **The framework's own declaration layer** — mission · non-negotiables C1–C14 · governance (user-gated) |
 | [`docs/guide.md`](docs/guide.md) | **The Director's Guide** — the human-facing manual: onboarding (new + brownfield), the seats, the gates you hold |
+| [`docs/comparison.md`](docs/comparison.md) | **How FD relates to the field** — credit-first comparison vs Spec Kit · BMAD · OpenSpec · Kiro on checkable axes, date-stamped |
 | `docs/spec/` | The living spec spine — declaration-truth (Constitution + REQs by domain + design-intent + arch-constraints + amendment log) |
 | `docs/planning/` | Backlog ledger + sprint slices — execution-truth |
 | `shared/` | Shared cross-skill machinery — spine boundary, amendment & subagent protocols, and `artifact-map.md` (canonical storage + naming) |
