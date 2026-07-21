@@ -1,14 +1,89 @@
 # Fullstack Director
 
 > One person *directing* every role of the software lifecycle — discovery, planning, design, architecture,
-> build, review, release, security — holding the entire system context, with zero handoff loss.
+> build, review, security, release — holding the entire system context, with zero handoff loss.
 
-**Fullstack Director** is a spec-first, **cross-harness** SDLC skills framework (Claude Code, Codex, Gemini CLI,
-Copilot, Cursor, OpenCode). A single living **spec spine**
+**You're an expert in your field — law, health, finance, anything.** AI just handed you the powers of an
+entire software firm: strategist, designer, architect, builder, reviewer, security auditor. **Fullstack
+Director organizes those new powers so you can direct them like a firm:** your expertise is interviewed and
+written down as a living spec every seat must follow; every collision between your domain and the craft of
+building comes back to you as a decision only you can make; and nothing is called "done" without evidence you
+can read. You **direct in dialogue**; the AI workforce executes.
+
+```mermaid
+flowchart TB
+    you(["You — the expert, directing"])
+    spec[("Your expertise, made explicit — the living spec")]
+    you -->|"interviewed once, in your words"| spec
+    subgraph agents ["the new powers — AI agents, one seat at a time"]
+        direction LR
+        plan["plan"] --> design["design"] --> build["build"] --> verify["verify"] --> ship["ship"]
+    end
+    spec -->|"single source of truth"| agents
+    agents -.->|"domain ↔ build collisions come back to you as decisions"| you
+    verify -.->|"never 'done' without evidence"| you
+```
+
+**Who this is for.** Domain experts going into AI-assisted building who want control without becoming
+engineers — and engineers who want a spec-first discipline their agents can't silently drift from. It runs
+inside the AI coding tools you already use: **Claude Code · Codex CLI · Gemini CLI**.
+
+## Quickstart
+
+You need: one of the AI coding tools above, plus `git` and Python installed.
+
+```bash
+# 1 · Get the framework (once)
+git clone https://github.com/IncommensurableHubris/fullstack-director
+
+# 2 · Install the skills into your project folder (for a new project, make an empty folder first)
+python fullstack-director/tools/vendor.py sync --target path/to/your-project
+
+# 3 · Open your project in your AI tool and start
+/00-discovery      # it interviews you, then writes your spec
+/status            # anytime: where am I, what do I run next?
+```
+
+From there, `/status` always names the exact next command. The full walkthrough — what each step produces and
+what you'll be asked to decide — is the [**Director's Guide**](docs/guide.md).
+
+## Where your domain meets the build — the call is yours
+
+Your spec is not a suggestion — when the craft of building collides with your domain's rules, the integrating
+decision comes back to you. An illustrative run (a therapist building a practice app):
+
+```text
+▸ Designing "send session summary to client"…
+
+⚠ Paused — this collides with a rule you set:
+   REQ-007 · "Session notes are never sent by email"   (your confidentiality requirement)
+   The summary feature, as requested, would email note content.
+
+Your decision:
+  [1] Secure-portal delivery — honors your confidentiality rule AND ships the feature
+  [2] Amend the rule (recorded as your decision, in the log)
+
+> 1
+✓ Integrated: rule honored · feature redesigned · decision recorded
+```
+
+That pause is the framework's core mechanic — the **amendment protocol**: the build's craft and your domain's
+rules both get a voice, and the integrating call is always yours, always logged. The same discipline runs at
+review: work is not "done" until verification evidence exists.
+
+## Why "Director"
+
+The name comes from practice, not metaphor. The framework grew out of the **Fullstack Counsel** journey — a
+practising lawyer building a legal-AI stack and finding that the decisive role is the **Director**: setting
+intent, coordinating an AI workforce seat by seat, auditing the work — *directing in dialogue*. The thesis and
+the journey are written up in [the Fullstack Counsel series](https://incommensurable.substack.com/); this
+framework is that role built as a tool — for any domain expert, not only lawyers.
+
+## Under the hood — four ideas
+
+**Fullstack Director** is a spec-first, **cross-harness** SDLC skills framework. A single living **spec spine**
 (`docs/spec/`) is the source of truth; functional-role skills each take "one verb on the spine," challenging and
 refining it under a controlled amendment protocol rather than silently consuming or silently mutating it.
-
-It is built around four ideas:
 
 1. **Single source of truth.** One living spec spine (`docs/spec/`) holds the *declarations* (requirements, design
    intent, architecture constraints). There is no separate requirements brief or per-story files — the spine replaces them.
