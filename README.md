@@ -24,9 +24,11 @@ flowchart TB
     verify -.->|"never 'done' without evidence"| you
 ```
 
-**Who this is for.** Domain experts going into AI-assisted building who want control without becoming
-engineers — and engineers who want a spec-first discipline their agents can't silently drift from. It runs
-inside the AI coding tools you already use: **Claude Code · Codex CLI · Gemini CLI**.
+**Who this is for. Lawyer, fullstack. Social worker, fullstack. You, fullstack.** An engineer who can code
+both ends of an app is called *fullstack* — why not you, in your own field? This framework is for domain
+experts going into AI-assisted building who want the whole stack directed by their own expertise — and for
+engineers who want a spec-first discipline their agents can't silently drift from. It runs inside the AI
+coding tools you already use: **Claude Code · Codex CLI · Gemini CLI**.
 
 ## Quickstart
 
