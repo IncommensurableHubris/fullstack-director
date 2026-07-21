@@ -18,7 +18,9 @@
 review, release, security — holding the entire system context, with zero handoff loss.** The director decides;
 AI agents execute the seats; a single living spec spine carries the truth between them. The framework serves
 products up to and including **agent systems as the deliverable** (the `agent-system` profile and the
-embedded-agent module are that commitment, live), across any AI coding harness the director chooses.
+embedded-agent module are that commitment, live), across any AI coding harness the director chooses. The
+purpose is not guarded delegation but **authentic integration**: the granted SDLC domains, directed in
+dialogue, generating new value inside the director's own domain.
 
 ## The non-negotiables
 

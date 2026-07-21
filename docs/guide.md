@@ -13,9 +13,15 @@
 
 ## 1 · What you are directing
 
-Fullstack Director keeps one **spec spine** (`docs/spec/` in *your project*) as the single source of
-**declaration-truth**: your requirements (`REQ-NNN` blocks), design intent, architecture constraints, project
-non-negotiables (the Constitution), and — for agent products — the agent contract and golden eval datasets.
+The premise is the one the README leads with: AI grants you the seats of an entire software firm — the **new
+powers** — and this manual is how you **direct them in dialogue**: your expertise made explicit as a spec the
+seats must follow, and every collision between your domain and the craft of building returned to you as the
+integrating call.
+
+Concretely, Fullstack Director keeps one **spec spine** (`docs/spec/` in *your project*) as the single source
+of **declaration-truth**: your requirements (`REQ-NNN` blocks), design intent, architecture constraints,
+project non-negotiables (the Constitution), and — for agent products — the agent contract and golden eval
+datasets.
 
 The one test that draws every boundary (`shared/spine-boundary.md`): **would you object if this changed without
 anyone asking you?** Yes → it is a *declaration*, it lives in the spine, and it changes only through the
@@ -34,7 +40,8 @@ silently comply *or* silently fix; it files an **amendment** and the tier decide
 
 Skills escalate when uncertain — you will occasionally be asked about something trivial; that is the designed
 cost of never having your intent silently rewritten. Your standing role: **you hold every consequential gate**
-(charter C4). The agents execute; you decide.
+(charter C4) — the integrating call between your domain's rules and the build's craft is always yours. The
+agents execute; you decide.
 
 ## 2 · Setup — putting the framework into a project
 
@@ -132,7 +139,10 @@ after debt accrues across sprints) · `/07-security full` periodically · `/stat
 your declaration, the contradiction or gap in one sentence, and a proposed resolution. Deciding well:
 
 - **Approve** when the expert is right — for an architecture tech-mandate, know that approval changes *two*
-  things: your stated constraint line **and** a new ADR recording the decision. Both, or neither.
+  things: your stated constraint line **and** a new ADR recording the decision. Both, or neither. And before
+  choosing between "keep my rule" and "change my rule," ask the seat for the **integrating option** — the
+  resolution that honors your rule *and* delivers the outcome (the README's secure-portal example); the
+  strongest calls are usually that third path.
 - **Adjust / reject** when the expert misread your intent — rejection costs nothing; the realization must then
   honor the declaration as written.
 - If the "conflict" is really *new scope*, say so — it becomes a Tier-3 row for reflect, not an on-the-spot
